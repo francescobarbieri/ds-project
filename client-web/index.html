@@ -1,20 +1,133 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Example page</title>
-  </head>
-  <body data-server-no-reload>
-    <h2>Hello World!</h2>
-    <script>
-      const API_URI = "http://localhost:8080";
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-      window.onload = init();
+        <link rel="stylesheet" href="style.css" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+            rel="stylesheet"
+        />
 
-      async function init() {
-        // Iniziare qui.
-      }
+        <title>Domain Broker - DS Project</title>
+    </head>
+    <body data-server-no-reload>
+        <header>
+            <div class="wrapper">
+                <div class="navbar">
+                    <nav>
+                        <a href="index.html">Home</a>
+                        <a href="domains.html">Domain List</a>
+                        <a href="orders.html">Order List</a>
+                        <a href="register.html">Register</a>
+                    </nav>
+                    <div>
+                        <label>UserID:</label>
+                        <input
+                            class="uid-input"
+                            type="number"
+                            placeholder="UserID"
+                            id="userId"
+                        />
+                        <button id="unsetUserId">Unset</button>
+                    </div>
+                </div>
+            </div>
+        </header>
 
-    </script>
-  </body>
+        <div class="container">
+            <div class="wrapper">
+                <div class="header">
+                    <h1>Domain store</h1>
+                    <p>Search for a domain</p>
+                </div>
+                <form method="post" action="" id="main-form">
+                    <input
+                        class="main-input"
+                        type="text"
+                        placeholder="Insert domain here"
+                        name="domain"
+                    />
+                </form>
+                <div class="error-box" id="error-box">
+                    This domain is already assigned to the user:
+                    <br />
+                    <div>
+                        <span style="font-weight: 500">Name:</span>
+                        <span>Marco</span>
+                    </div>
+                    <div>
+                        <span style="font-weight: 500">Surname:</span>
+                        <span>Aurelio</span>
+                    </div>
+                    <div>
+                        <span style="font-weight: 500">Email:</span>
+                        <span>marcoaurelio@gmail.com</span>
+                    </div>
+                    <div>
+                        <span style="font-weight: 500">Expiration:</span>
+                        <span>12 Giugno 2024</span>
+                    </div>
+                    <br />
+                    Try with a different one.
+                </div>
+            </div>
+        </div>
 
+        <footer>
+            <div class="wrapper">
+                <div class="footer-content">Francesco Barbieri 856375</div>
+            </div>
+        </footer>
+        <script src="script.js"></script>
+        <script>
+            window.onload = function () {
+                const mainForm = document.getElementById('main-form');
+                if (mainForm)
+                    mainForm.addEventListener('submit', reserveDomain);
+            };
+
+            async function reserveDomain(event) {
+                event.preventDefault();
+
+                const form = document.getElementById("main-form");
+                const formData = new FormData(form);
+                const domain  = formData.get("domain");
+
+                const endpoint = `${API_URI}/reserveDomain/`;
+
+                /*
+                const response = await fetch(endpoint, {
+                    method: "POST",
+                    headers: {
+                        "Content-type": "application/json",
+                        "Access-Control-Request-Method": "PUT",
+                        "Access-Control-Request-Headers": "content-type",
+                        "Host": "localhost:8080",
+                        "Sec-Fetch-Dest": "empty",
+                        "Sec-Fetch-Mode": "cors",
+                        "Sec-Fetch-Site": "same-site"
+                    },
+                    body: JSON.stringify(),
+                });
+
+
+                if(false) { // !response.ok
+                    if(true) { // response.status === 409
+                        const errorBox = document.getElementById("error-box");
+                        errorBox.style.display = "block";
+                        return;
+                    } else {
+                        throw new Error(`Generic error. ${response.status} ${response.statusText}`);
+                    }
+                }
+                // const data = await response.json();
+                */
+                window.location.href = `buy.html?domain=${domain}`;
+            }
+        </script>
+    </body>
 </html>

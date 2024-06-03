@@ -1,0 +1,163 @@
+:root {
+    --light-gray: #cecece;
+    --green: #00ff40;
+    --light-green: #8fe184;
+    --red: #ff0000;
+    --light-red: #e89b9b;
+    --gray: #343434;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    padding: 0;
+    margin: 0;
+    min-height: 100%;
+    width: 100%;
+    font-size: 1em;
+    font-family: "Roboto", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+}
+
+.wrapper {
+    max-width: 48rem;
+    width: calc(100% - 2rem);
+    padding-left: 2rem;
+    padding-right: 2rem;
+    margin: auto;
+}
+
+.navbar {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--light-gray);
+}
+
+nav {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    height: 5rem;
+}
+
+nav a {
+    text-decoration: none;
+    color: black;
+    flex-wrap: nowrap;
+    overflow-x: scroll;
+}
+
+nav a:hover {
+    color: blue;
+    text-decoration: underline;
+}
+
+.header {
+    margin-top: 3rem;
+    width: 100%;
+}
+
+.uid-input {
+    width: 5rem;
+    border: 1px solid var(--light-gray);
+    border-radius: 3px;
+    padding: 0.3rem;
+}
+
+.main-input {
+    width: 100%;
+    border: 1px solid var(--light-gray);
+    border-radius: 3px;
+    padding: 0.5rem;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+}
+
+.success-box {
+    border: 1px solid var(--green);
+    padding: 1rem;
+    border-radius: 6px;
+    background-color: var(--light-green);
+}
+
+.error-box {
+    border: 1px solid var(--red);
+    padding: 1rem;
+    border-radius: 6px;
+    background-color: var(--light-red);
+    display: none;
+}
+
+.buy-box {
+    margin-top: 0.5rem;
+}
+
+.input-wrapper {
+    margin-top: 2rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.submit-button {
+    border-radius: 3px;
+    background-color: #000;
+    cursor: pointer;
+    color: #fff;
+    font-size: 1rem;
+    padding: 0.6rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    border: none;
+}
+
+.submit-button:hover {
+    background-color: #4d4d4d;
+}
+
+.input-wrapper input {
+    width: 100%;
+    border: 1px solid var(--light-gray);
+    border-radius: 3px;
+    padding: 0.5rem;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+}
+
+.payment-info-container {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+}
+
+footer {
+    margin-top: 5rem;
+    position: relative;
+    bottom: 0;
+    height: 5rem;
+    width: 100%;
+}
+
+.footer-content {
+    border-top: 1px solid var(--light-gray);
+    padding-top: 1.5rem;
+}
+
+/* domains page */
+
+.domain-box {
+    border: 1px solid var(--gray);
+    padding: 1rem;
+    border-radius: 6px;
+    background-color: var(--light-gray);
+}
+
+.domain-name {
+    font-size: 1.2rem;
+    font-weight: 500;
+    margin-bottom: 0.7rem;
+}

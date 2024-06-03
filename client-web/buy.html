@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+        <link rel="stylesheet" href="style.css" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+            rel="stylesheet"
+        />
+
+        <title>Domain Broker - DS Project</title>
+    </head>
+    <body data-server-no-reload>
+        <header>
+            <div class="wrapper">
+              <div class="navbar">
+                <nav>
+                    <a href="index.html">Home</a>
+                    <a href="domains.html">Domain List</a>
+                    <a href="orders.html">Order List</a>
+                    <a href="register.html">Register</a>
+                </nav>
+                <div>
+                  <label>UserID:</label>
+                  <input class="uid-input" type="number" placeholder="UserID" id="userId">
+                  <button id="unsetUserId">Unset</button>
+                </div>
+              </div>
+            </div>
+          </header>
+
+        <div class="container">
+            <div class="wrapper">
+                <div class="header">
+                    <h1 id="domain-name">Budjetdomains</h1>
+                    <p>Complete the purchase</p>
+                </div>
+                <div id="main-content">
+                    <div class="success-box">This domain is available!</div>
+                    <div class="buy-box">
+                        <h3>You can proceed</h3>
+                        <form id="buy-form" action="" method="post">
+                            <div class="input-wrapper">
+                                <label>Number of years reserved</label>
+                                <input
+                                    type="number"
+                                    placeholder="Number of years"
+                                    min="1"
+                                    max="10"
+                                    name="duration"
+                                    id="duration"
+                                    value="1"
+                                    required
+                                />
+                                <label>Price</label>
+                                <input type="number" placeholder="Price" id="price" name="price" disabled />
+                            </div>
+                            <br />
+                            <div class="input-wrapper">
+                                <label>Name</label>
+                                <input type="text" placeholder="Name" name="name" required/>
+                                <label>Surname</label>
+                                <input type="text" placeholder="Surname" name="surname" required/>
+                                <label>Email</label>
+                                <input type="email" placeholder="Email" name="email" required/>
+                                <label>Accountholder</label>
+                                <input
+                                    type="text"
+                                    placeholder="Accountholder"
+                                    name="accountholder"
+                                    required
+                                />
+                                <div class="payment-info-container">
+                                    <div>
+                                        <label>Card number</label>
+                                        <input
+                                            type="text"
+                                            placeholder="Card number"
+                                            name="card-number"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label>CVV</label>
+                                        <input type="text" placeholder="CVV" name="cvv" required/>
+                                    </div>
+                                </div>
+                            </div>
+                            <input class="submit-button" type="submit" value="Buy domain">
+                        </form>
+                    </div>
+                </div>
+                <div class="success-box" id="success-box" hidden>
+                    You successfully bought the domain!
+                </div>
+                <div class="error-box" id="error-box" hidden>
+                    You need to insert a user ID in the navbar to proceed.
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <div class="wrapper">
+                <div class="footer-content">Made by Francesco Barbieri</div>
+            </div>
+        </footer>
+        <script src="script.js"></script>
+        <script>
+            const urlParams = new URLSearchParams(window.location.search);
+
+            window.onload = init();
+            async function init() {
+                const domain = urlParams.get("domain");
+                document.getElementById("domain-name").innerText = domain;
+
+                const form = document.getElementById("buy-form");
+                form.addEventListener("submit", buyDomain);
+
+                // Update price on page load
+                updatePrice();
+
+                // Evaluate price accordingly to years selected
+                const durationElement = document.getElementById("duration");
+                duration.addEventListener("change", updatePrice);
+            }
+
+            function buyDomain(event) {
+                event.preventDefault();
+
+                if(!localStorage.getItem("userId")) {
+                    document.getElementById("error-box").style.display = "block";
+                    return;
+                }
+
+                const form = document.getElementById("buy-form");
+                const formData = new FormData(form);
+
+                const data = {
+                    domain: urlParams.get('domain'),
+                    today: new Date().toLocaleDateString(),
+                    duration: formData.get("duration"),
+                    name: formData.get("name"),
+                    surname: formData.get("surname"),
+                    email: formData.get("email"),
+                    cardNumber: formData.get("card-number"),
+                    amount: formData.get("price"),
+                    cvv: formData.get("cvv"),
+                }
+                
+                const endpoint = `${API_URI}/buyDomain/`;
+
+                /*
+                const response = await fetch(endpoint, {
+                    method: "POST",
+                    headers: {
+                        "Content-type": "application/json",
+                        "Access-Control-Request-Method": "PUT",
+                        "Access-Control-Request-Headers": "content-type",
+                        "Host": "localhost:8080",
+                        "Sec-Fetch-Dest": "empty",
+                        "Sec-Fetch-Mode": "cors",
+                        "Sec-Fetch-Site": "same-site"
+                    },
+                    body: JSON.stringify(),
+                });
+                */
+                if(false) { // !response.ok
+                    throw new Error(`Generic error. ${response.status} ${response.statusText}`);
+                }
+
+                document.getElementById("main-content").style.display = "none";
+                document.getElementById("success-box").style.display = "block";
+            }
+
+            function updatePrice() {
+                const pricePerYear = 10;
+                
+                const priceElement = document.getElementById("price");
+                const durationElement = document.getElementById("duration");
+                
+                const duration = durationElement.value;
+                const price = duration * pricePerYear;
+
+                priceElement.setAttribute("value", `${price}`);
+            }
+
+        </script>
+    </body>
+</html>
