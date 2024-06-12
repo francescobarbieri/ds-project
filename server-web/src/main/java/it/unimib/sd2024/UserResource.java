@@ -5,6 +5,7 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
+import it.unimib.sd2024.model.User;
 import jakarta.json.JsonException;
 import jakarta.json.bind.JsonbBuilder;
 import jakarta.json.bind.JsonbException;
@@ -23,8 +24,8 @@ import jakarta.ws.rs.core.Response.Status;
 /**
  * Rappresenta la risorsa "example" in "http://localhost:8080/example".
  */
-@Path("example")
-public class ExampleResource {
+@Path("user")
+public class UserResource {
     // Attributi privati statici...
 
     // Inizializzazione statica.
@@ -33,13 +34,16 @@ public class ExampleResource {
     }
 
     /**
-     * Implementazione di GET "/example".
+     * Implementazione di GET "/user".
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Integer getKeyboards() {
+    public User getUser() {
         // Aprire qui una socket verso il database, fare il comando per ottenere la risposta.
         // ...
-        return 42;
+
+        User user = new User(0, "Marco", "Rossi", "maro.rossi@gmail.com");
+
+        return user;
     }
 }
