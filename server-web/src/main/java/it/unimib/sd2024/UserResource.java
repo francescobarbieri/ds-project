@@ -1,11 +1,13 @@
 package it.unimib.sd2024;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
 import it.unimib.sd2024.model.User;
+import it.unimib.sd2024.utils.Client;
 import jakarta.json.JsonException;
 import jakarta.json.bind.JsonbBuilder;
 import jakarta.json.bind.JsonbException;
@@ -26,24 +28,30 @@ import jakarta.ws.rs.core.Response.Status;
  */
 @Path("user")
 public class UserResource {
-    // Attributi privati statici...
-
-    // Inizializzazione statica.
-    static {
-        // ...
-    }
+    static { }
 
     /**
-     * Implementazione di GET "/user".
+     * Implementation of POST "/user".
      */
-    @GET
+    @POST
     @Produces(MediaType.APPLICATION_JSON)
-    public User getUser() {
-        // Aprire qui una socket verso il database, fare il comando per ottenere la risposta.
-        // ...
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response registerUser(User user) {
 
-        User user = new User(0, "Marco", "Rossi", "maro.rossi@gmail.com");
+        try {           
+            Client client = new Client("localhost", 3030);
+            String command = String.format("USER SET %s %s %s", user.getEmail(), user.getName(), user.getSurname());
+            String response = client.sendCommand(command);
+            client.close();
 
-        return user;
+            if("OK".equals(response.trim())) {
+                return Response.ok().build();
+            } else {
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(response).build();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+        }
     }
 }

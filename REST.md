@@ -1,6 +1,4 @@
-# Progetto Sistemi Distribuiti 2023-2024 - API REST
-
-Documentare qui l'API REST progettata. Di seguito è presente un esempio.
+# Distributed System Project 2023-2024 - API REST
 
 **Attenzione**: l'unica rappresentazione ammessa è in formato JSON. Pertanto vengono assunti gli header `Content-Type: application/json` e `Accept: application/json`.
 
@@ -38,3 +36,60 @@ Ogni risorsa ha la sua sezione dedicata con i metodi ammessi. In questo caso si 
 
 * 201 Created: successo.
 * 400 Bad Request: c'è un errore del client (JSON, campo mancante o altro).
+
+## `/user/{id}`
+
+### GET
+
+**Description**: Returns user {id} data.
+
+**Parameters**: none.
+
+**Header**: none.
+
+**Body request**: none.
+
+**Parameters**: `{id}`: the user ID whose data you want to obtain.
+
+**Response**: A list with user data: `id` (int), `name` (string), `surname` (string) and `email` (string).
+
+**Status codes returned**: Success: `200 OK`; Error: `500 Internal Server Error`.
+
+## `/user/`
+
+### POST
+
+**Description**: adds a user to the system.
+
+**Parameters**: none.
+
+**Header**: none.
+
+**Body request**: a single user with the fields `name`, `surname` and `email`.
+
+**Response**: inside the body the system returns the `id` of the user just created.
+
+**Status codes returned**:
+
+* 201 Created: success.
+* 400 Bad Request: client errors (JSON, missing field).
+
+
+/user
+
+/user/{userId}
+
+/domain
+
+/domain/{userId}
+
+/domain/{domain}/availability GET
+
+/domain/{domain}/purchase POST con meccanismo di lock
+
+/domain/{domain}/renew POST con meccanismo di lock (?)
+
+/orders/
+
+/orders/{userId}
+

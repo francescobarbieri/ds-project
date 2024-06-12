@@ -97,36 +97,21 @@
                 const formData = new FormData(form);
                 const domain  = formData.get("domain");
 
-                const endpoint = `${API_URI}/reserveDomain/`;
+                const endpoint = `${API_URI}/domains/${domain}/availability`;
 
-                /*
-                const response = await fetch(endpoint, {
-                    method: "POST",
-                    headers: {
-                        "Content-type": "application/json",
-                        "Access-Control-Request-Method": "PUT",
-                        "Access-Control-Request-Headers": "content-type",
-                        "Host": "localhost:8080",
-                        "Sec-Fetch-Dest": "empty",
-                        "Sec-Fetch-Mode": "cors",
-                        "Sec-Fetch-Site": "same-site"
-                    },
-                    body: JSON.stringify(),
-                });
-
-
-                if(false) { // !response.ok
-                    if(true) { // response.status === 409
+                const response = await fetch(endpoint);
+                if(!response.ok) {
+                    if(false) { // response.status === 409
                         const errorBox = document.getElementById("error-box");
                         errorBox.style.display = "block";
                         return;
                     } else {
                         throw new Error(`Generic error. ${response.status} ${response.statusText}`);
                     }
+                } else {
+                    const data = await response.json();
+                    window.location.href = `buy.html?domain=${data.domain}`;
                 }
-                // const data = await response.json();
-                */
-                window.location.href = `buy.html?domain=${domain}`;
             }
         </script>
     </body>

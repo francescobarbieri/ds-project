@@ -1,5 +1,6 @@
 package it.unimib.sd2024;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
@@ -20,6 +21,10 @@ import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ContainerResponseContext;
+import jakarta.ws.rs.container.ContainerResponseFilter;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
@@ -28,11 +33,37 @@ import jakarta.ws.rs.core.Response.Status;
  * Rappresenta la risorsa "example" in "http://localhost:8080/example".
  */
 @Path("domains")
-public class DomainsResource {
+public class DomainsResource implements ContainerResponseFilter {
     static { }
 
+    @Override
+    public void filter(final ContainerRequestContext requestContext,
+    final ContainerResponseContext cres) throws IOException {
+        cres.getHeaders().add("Access-Control-Allow-Origin", "*");
+        cres.getHeaders().add("Access-Control-Allow-Headers", "origin, content-type, accept, authorization");
+        cres.getHeaders().add("Access-Control-Allow-Credentials", "true");
+        cres.getHeaders().add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, HEAD");
+        cres.getHeaders().add("Access-Control-Max-Age", "1209600");
+    }
+
     /**
-     * Implementazione di GET "/domain".
+     * Implementazione di GET "/domains".
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getDomains(@QueryParam("user") String userid) {
+
+        StringBuilder jsonString = new StringBuilder();
+        jsonString.append("{\"domain\": \" hello.com \",");
+        jsonString.append("\"availability\": true }");
+
+        String jsonResponse = jsonString.toString(); 
+
+        return Response.ok(jsonResponse, MediaType.APPLICATION_JSON).build();
+    }
+
+    /**
+     * Implementazione di GET "/domains/{domain}/availability".
      */
     @Path("/{domain}/availability")
     @GET
@@ -46,9 +77,6 @@ public class DomainsResource {
         String jsonResponse = jsonString.toString(); 
 
         return Response.ok(jsonResponse, MediaType.APPLICATION_JSON)
-        .header("Access-Control-Allow-Origin", "*").header("Access-Control-Allow-Methods", "*")
-        .header("Access-Control-Allow-Headers", "*").header("Access-Control-Allow-Credentials", "false")
-        .header("Access-Control-Max-Age", "3600")
         .build();
     }
 
@@ -70,26 +98,21 @@ public class DomainsResource {
     /**
     * Implementation of POST "/{domain}/buy".
     */
+
     @Path("/{domain}/buy")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response buyDomain(@PathParam("domain") String domain, PurchaseRequest purchaseRequest) {
+    public Response buyDomain(@PathParam("domain") String domain, String body) {
 
         StringBuilder jsonString = new StringBuilder();
         jsonString.append("{\"domain\": \"" + domain + "\",");
-        jsonString.append("\"availability\": true }");
+        jsonString.append("\"availability\": true,");
+        jsonString.append("\"body\": " + body + " }");
 
         String jsonResponse = jsonString.toString(); 
 
         return Response.ok(jsonResponse, MediaType.APPLICATION_JSON)
-            .header("Access-Control-Allow-Origin", "*")
-            .header("Access-Control-Allow-Methods", "*")
-            .header("Access-Control-Allow-Headers", "*")
-            .header("Access-Control-Allow-Credentials", "false")
-            .header("Access-Control-Max-Age", "3600")
-            .header("Access-Control-Request-Method", "*")
-            .header("Access-Control-Request-Headers", "origin, x-request-with")
             .build();
     }
 }

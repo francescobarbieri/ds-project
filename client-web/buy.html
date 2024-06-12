@@ -128,7 +128,7 @@
                 duration.addEventListener("change", updatePrice);
             }
 
-            function buyDomain(event) {
+            async function buyDomain(event) {
                 event.preventDefault();
 
                 if(!localStorage.getItem("userId")) {
@@ -140,38 +140,44 @@
                 const formData = new FormData(form);
 
                 const data = {
-                    domain: urlParams.get('domain'),
-                    today: new Date().toLocaleDateString(),
-                    duration: formData.get("duration"),
-                    name: formData.get("name"),
-                    surname: formData.get("surname"),
-                    email: formData.get("email"),
-                    cardNumber: formData.get("card-number"),
-                    amount: formData.get("price"),
-                    cvv: formData.get("cvv"),
+                    user: {
+                        id: 1,
+                        name: formData.get("name"),
+                        surname: formData.get("surname"),
+                        email: formData.get("email"),
+                    },
+                    domain: {
+                        domain: urlParams.get('domain'),
+                        //date: new Date().toLocaleDateString(),
+                        duration: formData.get("duration"),
+                        //price: formData.get("price"),
+                        price: 12,
+                    },
+                    //cardNumber: formData.get("card-number"),
+                    //cvv: formData.get("cvv"),
                 }
                 
-                const endpoint = `${API_URI}/buyDomain/`;
+                const endpoint = `${API_URI}/domains/${urlParams.get('domain')}/buy`;
 
-                /*
                 const response = await fetch(endpoint, {
                     method: "POST",
                     headers: {
-                        "Content-type": "application/json",
-                        "Access-Control-Request-Method": "PUT",
+                        "Content-Type": "application/json",
+                        "Access-Control-Allow-Origin": "*",
+                        "Access-Control-Request-Method": "POST",
                         "Access-Control-Request-Headers": "content-type",
-                        "Host": "localhost:8080",
                         "Sec-Fetch-Dest": "empty",
                         "Sec-Fetch-Mode": "cors",
                         "Sec-Fetch-Site": "same-site"
                     },
-                    body: JSON.stringify(),
+                    body: JSON.stringify(data),
                 });
-                */
-                if(false) { // !response.ok
-                    throw new Error(`Generic error. ${response.status} ${response.statusText}`);
-                }
 
+                if (!response.ok) {
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
+                const temp = await response.json();
+                console.log(data)
                 document.getElementById("main-content").style.display = "none";
                 document.getElementById("success-box").style.display = "block";
             }
