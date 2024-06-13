@@ -38,9 +38,9 @@
         </div>
         <div id="main-content">
             <form method="post" action="" id="register-form">
-                <input class="main-input" type="text" placeholder="Name" name="domain" />
-                <input class="main-input" type="text" placeholder="Surname" name="domain" />
-                <input class="main-input" type="text" placeholder="Email" name="domain" />
+                <input class="main-input" type="text" placeholder="Name" name="name" />
+                <input class="main-input" type="text" placeholder="Surname" name="surname" />
+                <input class="main-input" type="text" placeholder="Email" name="email" />
                 <input class="submit-button" type="submit" value="Register" />
             </form>
         </div>
@@ -72,7 +72,7 @@
             document.getElementById("register-form").addEventListener("submit", registerProfile);
         }
 
-        function registerProfile(event) {
+        async function registerProfile(event) {
             event.preventDefault();
 
             const form = document.getElementById("register-form");
@@ -84,25 +84,24 @@
                 email: formData.get("email"),
             }
 
-            const endpoint = `${API_URI}/register/`;
+            const endpoint = `${API_URI}/user`;
 
-            /*
             const response = await fetch(endpoint, {
                 method: "POST",
                 headers: {
-                    "Content-type": "application/json",
-                    "Access-Control-Request-Method": "PUT",
-                    "Access-Control-Request-Headers": "content-type",
-                    "Host": "localhost:8080",
-                    "Sec-Fetch-Dest": "empty",
-                    "Sec-Fetch-Mode": "cors",
-                    "Sec-Fetch-Site": "same-site"
+                  "Content-Type": "application/json",
+                  "Access-Control-Allow-Origin": "*",
+                  "Access-Control-Request-Method": "POST",
+                  "Access-Control-Request-Headers": "content-type",
+                  "Sec-Fetch-Dest": "empty",
+                  "Sec-Fetch-Mode": "cors",
+                  "Sec-Fetch-Site": "same-site"
                 },
-                body: JSON.stringify(),
+                body: JSON.stringify(data),
             });
 
-            if(false) { // !response.ok
-                if(true) { // response.status === 409
+            if(!response.ok) {
+                if(response.status === 409) {
                     const errorBox = document.getElementById("error-box");
                     errorBox.style.display = "block";
                     return;
@@ -110,7 +109,6 @@
                     throw new Error(`Generic error. ${response.status} ${response.statusText}`);
                 }
             }
-            */
             const tempUserId = 1; //TODO: remove this
             localStorage.setItem("userId", tempUserId);
 

@@ -6,6 +6,8 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.json.JSONObject;
+
 import it.unimib.sd2024.model.User;
 import it.unimib.sd2024.utils.Client;
 import jakarta.json.JsonException;
@@ -14,21 +16,38 @@ import jakarta.json.bind.JsonbException;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.OPTIONS;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ContainerResponseContext;
+import jakarta.ws.rs.container.ContainerResponseFilter;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 
 /**
- * Rappresenta la risorsa "example" in "http://localhost:8080/example".
+ * Represents the "user" resource in "http://localhost:8080/user".
  */
 @Path("user")
 public class UserResource {
     static { }
+
+    @OPTIONS
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response avoidCORSBlocking() {
+        return Response.ok()
+            .header("Access-Control-Allow-Origin", "*")
+            .header("Access-Control-Allow-Headers", "*")
+            .header("Access-Control-Allow-Credentials", "false")
+            .header("Access-Control-Max-Age", "3600")
+            .header("Access-Control-Request-Method", "*")
+            .header("Access-Control-Request-Headers", "origin, x-request-with")
+            .build();
+    }
 
     /**
      * Implementation of POST "/user".
@@ -36,22 +55,47 @@ public class UserResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response registerUser(User user) {
+    public Response registerUser(String jsonString) {
+
+        JSONObject jsonObject = new JSONObject(jsonString);
 
         try {           
             Client client = new Client("localhost", 3030);
-            String command = String.format("USER SET %s %s %s", user.getEmail(), user.getName(), user.getSurname());
+            String command = String.format("USER SET %s %s %s", jsonObject.getString("email"), jsonObject.getString("name"), jsonObject.getString("surname"));
             String response = client.sendCommand(command);
             client.close();
 
-            if("OK".equals(response.trim())) {
-                return Response.ok().build();
+            if(response.startsWith("OK, user ID: ")) {
+                String userId = response.substring(13).trim();
+                
+                return Response.ok(userId)
+                .header("Access-Control-Allow-Origin", "*")
+                .header("Access-Control-Allow-Headers", "*")
+                .header("Access-Control-Allow-Credentials", "false")
+                .header("Access-Control-Max-Age", "3600")
+                .header("Access-Control-Request-Method", "*")
+                .header("Access-Control-Request-Headers", "origin, x-request-with")
+                .build();
             } else {
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(response).build();
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(response)
+                    .header("Access-Control-Allow-Origin", "*")
+                    .header("Access-Control-Allow-Headers", "*")
+                    .header("Access-Control-Allow-Credentials", "false")
+                    .header("Access-Control-Max-Age", "3600")
+                    .header("Access-Control-Request-Method", "*")
+                    .header("Access-Control-Request-Headers", "origin, x-request-with")
+                    .build();
             }
         } catch (IOException e) {
             e.printStackTrace();
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage())
+                .header("Access-Control-Allow-Origin", "*")
+                .header("Access-Control-Allow-Headers", "*")
+                .header("Access-Control-Allow-Credentials", "false")
+                .header("Access-Control-Max-Age", "3600")
+                .header("Access-Control-Request-Method", "*")
+                .header("Access-Control-Request-Headers", "origin, x-request-with")
+                .build();
         }
     }
 }

@@ -30,21 +30,11 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 
 /**
- * Rappresenta la risorsa "example" in "http://localhost:8080/example".
+ * Represents the "domain" resource in "http://localhost:8080/domains".
  */
 @Path("domains")
-public class DomainsResource implements ContainerResponseFilter {
+public class DomainsResource {
     static { }
-
-    @Override
-    public void filter(final ContainerRequestContext requestContext,
-    final ContainerResponseContext cres) throws IOException {
-        cres.getHeaders().add("Access-Control-Allow-Origin", "*");
-        cres.getHeaders().add("Access-Control-Allow-Headers", "origin, content-type, accept, authorization");
-        cres.getHeaders().add("Access-Control-Allow-Credentials", "true");
-        cres.getHeaders().add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, HEAD");
-        cres.getHeaders().add("Access-Control-Max-Age", "1209600");
-    }
 
     /**
      * Implementazione di GET "/domains".
@@ -113,6 +103,13 @@ public class DomainsResource implements ContainerResponseFilter {
         String jsonResponse = jsonString.toString(); 
 
         return Response.ok(jsonResponse, MediaType.APPLICATION_JSON)
+            .header("Access-Control-Allow-Origin", "*")
+            .header("Access-Control-Allow-Methods", "*")
+            .header("Access-Control-Allow-Headers", "*")
+            .header("Access-Control-Allow-Credentials", "false")
+            .header("Access-Control-Max-Age", "3600")
+            .header("Access-Control-Request-Method", "*")
+            .header("Access-Control-Request-Headers", "origin, x-request-with")
             .build();
     }
 }
