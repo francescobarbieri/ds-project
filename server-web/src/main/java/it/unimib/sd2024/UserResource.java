@@ -67,8 +67,11 @@ public class UserResource {
 
             if(response.startsWith("OK, user ID: ")) {
                 String userId = response.substring(13).trim();
-                
-                return Response.ok(userId)
+
+                StringBuilder jsonResponse = new StringBuilder();
+                jsonResponse.append("{\"id\": \"" + userId + "\"}");
+
+                return Response.ok(jsonResponse.toString(), MediaType.APPLICATION_JSON)
                 .header("Access-Control-Allow-Origin", "*")
                 .header("Access-Control-Allow-Headers", "*")
                 .header("Access-Control-Allow-Credentials", "false")
@@ -77,7 +80,7 @@ public class UserResource {
                 .header("Access-Control-Request-Headers", "origin, x-request-with")
                 .build();
             } else {
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(response)
+                return Response.status(Response.Status.CONFLICT).entity(response)
                     .header("Access-Control-Allow-Origin", "*")
                     .header("Access-Control-Allow-Headers", "*")
                     .header("Access-Control-Allow-Credentials", "false")
