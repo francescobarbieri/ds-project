@@ -37,11 +37,11 @@
           <p>Insert your credentials below</p>
         </div>
         <div id="main-content">
-            <form id="register-form" method="post">
+            <form id="register-form" method="post" action="">
                 <input class="main-input" type="text" placeholder="Name" name="name" />
                 <input class="main-input" type="text" placeholder="Surname" name="surname" />
                 <input class="main-input" type="text" placeholder="Email" name="email" />
-                <input id="submit-button" class="submit-button" type="submit" value="Register" />
+                <button id="submit-button" class="submit-button">Register</button>
             </form>
         </div>
         <div class="error-box" id="error-box">
@@ -65,66 +65,60 @@
     <script>
 
         window.onload = function() {
-            if (document.getElementById("userId").value != "") {
+            if (localStorage.getItem("userId") != null) {
                 document.getElementById("main-content").style.display = "none";
                 const errorBox = document.getElementById("error-box");
                 errorBox.innerText = "You are already registered. Unset your user id from the navbar to register a new account.";
                 errorBox.style.display = "block";
             }
+
+            document.getElementById("register-form").addEventListener("submit", async ( event ) => {
+                event.preventDefault();
+
+                const form = document.getElementById("register-form");
+                const formData = new FormData(form);
+
+                const data = {
+                    name: formData.get("name"),
+                    surname: formData.get("surname"),
+                    email: formData.get("email"),
+                }
+
+                const endpoint = `${API_URI}/user`;
+
+                const response = await fetch(endpoint, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(data),
+                });
+
+                if(response.ok) {
+                    const responseData = await response.json();
+                    const userId = responseData.id;
+
+                    localStorage.setItem("userId", userId);
+                    document.getElementById("userId").value = userId;
+
+                    document.getElementById("main-content").style.display = "none";
+                    const successBox = document.getElementById("success-box");
+                    successBox.querySelector("span").innerText = userId;
+                    successBox.style.display = "block";
+                } 
+                else if(response.status == 409) {
+                    document.getElementById("main-content").style.display = "none";
+                    const errorBox = document.getElementById("error-box");
+                    errorBox.innerText = "This email is already registered.";
+                    errorBox.style.display = "block";
+                } else {
+                    document.getElementById("main-content").style.display = "none";
+                    const errorBox = document.getElementById("error-box");
+                    errorBox.innerText = "Unknown error.";
+                    errorBox.style.display = "block";
+                }
+            })
         }
-
-        document.getElementById("register-form").addEventListener("submit", async ( event ) => {
-            event.preventDefault();
-
-            const form = document.getElementById("register-form");
-            const formData = new FormData(form);
-
-            const data = {
-                name: formData.get("name"),
-                surname: formData.get("surname"),
-                email: formData.get("email"),
-            }
-
-            const endpoint = `${API_URI}/user`;
-
-            const response = await fetch(endpoint, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Access-Control-Allow-Origin": "*",
-                    "Access-Control-Request-Method": "POST",
-                    "Access-Control-Request-Headers": "content-type",
-                    "Sec-Fetch-Dest": "empty",
-                    "Sec-Fetch-Mode": "cors",
-                    "Sec-Fetch-Site": "same-site"
-                },
-                body: JSON.stringify(data),
-            });
-
-            if(response.ok) {
-                const responseData = await response.json();
-                const userId = responseData.id;
-
-                localStorage.setItem("userId", userId);
-                document.getElementById("userId").value = userId;
-
-                document.getElementById("main-content").style.display = "none";
-                const successBox = document.getElementById("success-box");
-                successBox.querySelector("span").innerText = userId;
-                successBox.style.display = "block";
-            } 
-            else if(response.status == 409) {
-                document.getElementById("main-content").style.display = "none";
-                const errorBox = document.getElementById("error-box");
-                errorBox.innerText = "This email is already registered.";
-                errorBox.style.display = "block";
-            } else {
-                document.getElementById("main-content").style.display = "none";
-                const errorBox = document.getElementById("error-box");
-                errorBox.innerText = "Unknown error.";
-                errorBox.style.display = "block";
-            }
-        })
     </script>
   </body>
 </html>

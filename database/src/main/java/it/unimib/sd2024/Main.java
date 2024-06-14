@@ -9,6 +9,8 @@ import java.util.Iterator;
 
 import javax.swing.text.html.StyleSheet;
 
+import it.unimib.sd2024.handlers.DomainHandler;
+import it.unimib.sd2024.handlers.OrderHandler;
 import it.unimib.sd2024.handlers.UserHandler;
 
 import java.io.*;
@@ -26,6 +28,8 @@ public class Main {
     public static final int PORT = 3030;
 
     private final UserHandler userHandler = new UserHandler();
+    private final DomainHandler domainHandler = new DomainHandler();
+    private final OrderHandler orderHandler = new OrderHandler();
 
     public Main(String address, int port) throws IOException {
         listenAddress = new InetSocketAddress(address, port);
@@ -101,8 +105,10 @@ public class Main {
         switch (resource) {
             case "USER":
                 return userHandler.handle(parts);
-            //case "DOMAIN":
-            //    return domainHandler.handle(parts);
+            case "DOMAIN":
+                return domainHandler.handle(parts);
+            case "ORDER":
+                return orderHandler.handle(parts);
             case "EXIT":
                 return("bye\n");
             default:

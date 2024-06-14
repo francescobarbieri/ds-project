@@ -6,6 +6,9 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.print.attribute.standard.Media;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.json.JSONObject;
 
 import it.unimib.sd2024.model.User;
@@ -34,6 +37,7 @@ import jakarta.ws.rs.core.Response.Status;
  */
 @Path("user")
 public class UserResource {
+    private ObjectMapper objectMapper = new ObjectMapper();
     static { }
 
     @OPTIONS
@@ -47,6 +51,54 @@ public class UserResource {
             .header("Access-Control-Request-Method", "*")
             .header("Access-Control-Request-Headers", "origin, x-request-with")
             .build();
+    }
+
+    /**
+     * Implementation of GET "/user".
+     */
+    @Path("/{userId}")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getUser(@PathParam("userId") String userId) {
+        try {
+            Client client = new Client("localhost", 3030);
+            String command = "USER GET " + userId;
+            String response = client.sendCommand(command);
+            client.close();
+
+            if(response.equals("NULL\n")) {
+                return Response.status(Response.Status.NOT_FOUND)
+                    .header("Access-Control-Allow-Origin", "*")
+                    .header("Access-Control-Allow-Headers", "*")
+                    .header("Access-Control-Allow-Credentials", "false")
+                    .header("Access-Control-Max-Age", "3600")
+                    .header("Access-Control-Request-Method", "*")
+                    .header("Access-Control-Request-Headers", "origin, x-request-with")
+                    .build();
+            } else {
+                User user = objectMapper.readValue(response, User.class);
+                return Response.ok(user, MediaType.APPLICATION_JSON)
+                    .header("Access-Control-Allow-Origin", "*")
+                    .header("Access-Control-Allow-Headers", "*")
+                    .header("Access-Control-Allow-Credentials", "false")
+                    .header("Access-Control-Max-Age", "3600")
+                    .header("Access-Control-Request-Method", "*")
+                    .header("Access-Control-Request-Headers", "origin, x-request-with")
+                    .build();
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+            .header("Access-Control-Allow-Origin", "*")
+            .header("Access-Control-Allow-Headers", "*")
+            .header("Access-Control-Allow-Credentials", "false")
+            .header("Access-Control-Max-Age", "3600")
+            .header("Access-Control-Request-Method", "*")
+            .header("Access-Control-Request-Headers", "origin, x-request-with")
+            .build();
+        }
+          
     }
 
     /**

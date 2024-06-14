@@ -6,9 +6,13 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import it.unimib.sd2024.model.Domain;
-import it.unimib.sd2024.model.PurchaseRequest;
+
 import it.unimib.sd2024.model.User;
+import it.unimib.sd2024.utils.Client;
 import jakarta.json.JsonException;
 import jakarta.json.bind.JsonbBuilder;
 import jakarta.json.bind.JsonbException;
@@ -34,22 +38,32 @@ import jakarta.ws.rs.core.Response.Status;
  */
 @Path("domains")
 public class DomainsResource {
+    ObjectMapper mapper = new ObjectMapper();
+
     static { }
+
+    @OPTIONS
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response avoidCORSBlocking2() {
+        return Response.ok()
+            .header("Access-Control-Allow-Origin", "*")
+            .header("Access-Control-Allow-Methods", "*")
+            .header("Access-Control-Allow-Headers", "*")
+            .header("Access-Control-Allow-Credentials", "false")
+            .header("Access-Control-Max-Age", "3600")
+            .header("Access-Control-Request-Method", "*")
+            .header("Access-Control-Request-Headers", "origin, x-request-with")
+            .build();
+    }
 
     /**
      * Implementazione di GET "/domains".
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getDomains(@QueryParam("user") String userid) {
+    public Response getDomains() {
 
-        StringBuilder jsonString = new StringBuilder();
-        jsonString.append("{\"domain\": \" hello.com \",");
-        jsonString.append("\"availability\": true }");
-
-        String jsonResponse = jsonString.toString(); 
-
-        return Response.ok(jsonResponse, MediaType.APPLICATION_JSON).build();
+        return null;
     }
 
     /**
@@ -60,14 +74,49 @@ public class DomainsResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response checkAvailabilityDomain(@PathParam("domain") String domain) {
 
-        StringBuilder jsonString = new StringBuilder();
-        jsonString.append("{\"domain\": \"" + domain + "\",");
-        jsonString.append("\"availability\": true }");
+        try {
+            Client client = new Client("localhost", 3030);
+            String command = "DOMAIN CHECK " + domain;
+            String response = client.sendCommand(command);
+            client.close();
 
-        String jsonResponse = jsonString.toString(); 
+            if("OK".equals(response.trim())) {
+                StringBuilder jsonString = new StringBuilder();
+                jsonString.append("{\"domain\": \"" + domain + "\",");
+                jsonString.append("\"availability\": true }");
+        
+                String jsonResponse = jsonString.toString(); 
 
-        return Response.ok(jsonResponse, MediaType.APPLICATION_JSON)
-        .build();
+                return Response.ok(jsonResponse, MediaType.APPLICATION_JSON)
+                    .header("Access-Control-Allow-Origin", "*")
+                    .header("Access-Control-Allow-Methods", "*")
+                    .header("Access-Control-Allow-Headers", "*")
+                    .header("Access-Control-Allow-Credentials", "false")
+                    .header("Access-Control-Max-Age", "3600")
+                    .header("Access-Control-Request-Method", "*")
+                    .header("Access-Control-Request-Headers", "origin, x-request-with")
+                .build();
+            } else {
+                return Response.status(Response.Status.CONFLICT).entity(response)
+                    .header("Access-Control-Allow-Origin", "*")
+                    .header("Access-Control-Allow-Headers", "*")
+                    .header("Access-Control-Allow-Credentials", "false")
+                    .header("Access-Control-Max-Age", "3600")
+                    .header("Access-Control-Request-Method", "*")
+                    .header("Access-Control-Request-Headers", "origin, x-request-with")
+                    .build();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage())
+                .header("Access-Control-Allow-Origin", "*")
+                .header("Access-Control-Allow-Headers", "*")
+                .header("Access-Control-Allow-Credentials", "false")
+                .header("Access-Control-Max-Age", "3600")
+                .header("Access-Control-Request-Method", "*")
+                .header("Access-Control-Request-Headers", "origin, x-request-with")
+                .build();
+        }
     }
 
     @Path("/{domain}/buy")
@@ -95,21 +144,48 @@ public class DomainsResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response buyDomain(@PathParam("domain") String domain, String body) {
 
-        StringBuilder jsonString = new StringBuilder();
-        jsonString.append("{\"domain\": \"" + domain + "\",");
-        jsonString.append("\"availability\": true,");
-        jsonString.append("\"body\": " + body + " }");
+        try {
+            JsonNode jsonNode = mapper.readTree(body);
 
-        String jsonResponse = jsonString.toString(); 
+            String userId = jsonNode.get("userId").asText();
+            int duration = jsonNode.get("duration").asInt();
+            long now = System.currentTimeMillis();
+            long expiryDate = System.currentTimeMillis() + 365 * 24 * 60 * 60 * 1000L * duration;
 
-        return Response.ok(jsonResponse, MediaType.APPLICATION_JSON)
+            
+            Client client = new Client("localhost", 3030);
+            String domainCommand = "DOMAIN SET " + domain + " " + userId + " " + now + " " + expiryDate;
+            String domainResponse = client.sendCommand(domainCommand);
+
+            Response.status(Response.Status.OK)
+                .header("Access-Control-Allow-Origin", "*")
+                .header("Access-Control-Allow-Methods", "*")
+                .header("Access-Control-Allow-Headers", "*")
+                .header("Access-Control-Allow-Credentials", "false")
+                .header("Access-Control-Max-Age", "3600")
+                .header("Access-Control-Request-Method", "*")
+                .header("Access-Control-Request-Headers", "origin, x-request-with")
+                .build();
+
+            //TODO: order part
+
+            // String orderCommand = "ORDER SET " + domain + " " + userId + " " + duration + " " + now;
+            // String orderResponse = client.sendCommand(domainCommand);
+            
+            client.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage())
             .header("Access-Control-Allow-Origin", "*")
-            .header("Access-Control-Allow-Methods", "*")
             .header("Access-Control-Allow-Headers", "*")
             .header("Access-Control-Allow-Credentials", "false")
             .header("Access-Control-Max-Age", "3600")
             .header("Access-Control-Request-Method", "*")
             .header("Access-Control-Request-Headers", "origin, x-request-with")
             .build();
+        }
+
+        return null;
     }
 }

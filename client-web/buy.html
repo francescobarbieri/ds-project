@@ -62,11 +62,11 @@
                             <br />
                             <div class="input-wrapper">
                                 <label>Name</label>
-                                <input type="text" placeholder="Name" name="name" required/>
+                                <input type="text" placeholder="Name" name="name" id="name" required/>
                                 <label>Surname</label>
-                                <input type="text" placeholder="Surname" name="surname" required/>
+                                <input type="text" placeholder="Surname" name="surname" id="surname" required/>
                                 <label>Email</label>
-                                <input type="email" placeholder="Email" name="email" required/>
+                                <input type="email" placeholder="Email" name="email" id="email" required/>
                                 <label>Accountholder</label>
                                 <input
                                     type="text"
@@ -114,6 +114,11 @@
 
             window.onload = init();
             async function init() {
+
+                if(localStorage.getItem("userId") != null) {
+                    await autoCompleteUserData();
+                }
+
                 const domain = urlParams.get("domain");
                 document.getElementById("domain-name").innerText = domain;
 
@@ -126,74 +131,91 @@
                 // Evaluate price accordingly to years selected
                 const durationElement = document.getElementById("duration");
                 duration.addEventListener("change", updatePrice);
-            }
 
-            async function buyDomain(event) {
-                event.preventDefault();
 
-                if(!localStorage.getItem("userId")) {
-                    document.getElementById("error-box").style.display = "block";
-                    return;
-                }
+                async function buyDomain(event) {
+                    event.preventDefault();
 
-                const form = document.getElementById("buy-form");
-                const formData = new FormData(form);
+                    if(!localStorage.getItem("userId")) {
+                        document.getElementById("error-box").style.display = "block";
+                        return;
+                    }
 
-                const data = {
-                    user: {
-                        id: 1,
-                        name: formData.get("name"),
-                        surname: formData.get("surname"),
-                        email: formData.get("email"),
-                    },
-                    domain: {
-                        domain: urlParams.get('domain'),
-                        //date: new Date().toLocaleDateString(),
+                    const form = document.getElementById("buy-form");
+                    const formData = new FormData(form);
+
+                    const domainData = {
+                        userId: localStorage.getItem("userId"),
                         duration: formData.get("duration"),
-                        //price: formData.get("price"),
-                        price: 12,
-                    },
-                    //cardNumber: formData.get("card-number"),
-                    //cvv: formData.get("cvv"),
+                    }
+
+                    //TODO: unbind price
+                    const orderData = {
+                        userId: localStorage.getItem("userId"),
+                        price: "12",
+                        domain: urlParams.get('domain'),
+                        accountHolder: formData.get("accountholder"),
+                        cardNumber: formData.get("card-number"),
+                        cvv: formData.get("cvv"),
+                    }
+                    
+                    const domainEndpoint = `${API_URI}/domains/${urlParams.get('domain')}/buy`;
+                    const orderEndpoint = `${API_URI}/orders`;
+                    
+                    const domainResponse = await fetch(domainEndpoint, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Access-Control-Allow-Origin": "*",
+                            "Access-Control-Request-Method": "POST",
+                            "Access-Control-Request-Headers": "content-type",
+                            "Sec-Fetch-Dest": "empty",
+                            "Sec-Fetch-Mode": "cors",
+                            "Sec-Fetch-Site": "same-site"
+                        },
+                        body: JSON.stringify(domainData),
+                    });
+                    
+                    const orderResponse = await fetch(orderEndpoint, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(orderData),
+                    });
+                    
+                    if (!domainResponse.ok && !orderResponse.ok) {
+                        throw new Error('Network response was not ok ' + domainResponse.statusText);
+                    }
+
+                    document.getElementById("main-content").style.display = "none";
+                    document.getElementById("success-box").style.display = "block";
                 }
-                
-                const endpoint = `${API_URI}/domains/${urlParams.get('domain')}/buy`;
 
-                const response = await fetch(endpoint, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Access-Control-Allow-Origin": "*",
-                        "Access-Control-Request-Method": "POST",
-                        "Access-Control-Request-Headers": "content-type",
-                        "Sec-Fetch-Dest": "empty",
-                        "Sec-Fetch-Mode": "cors",
-                        "Sec-Fetch-Site": "same-site"
-                    },
-                    body: JSON.stringify(data),
-                });
+                function updatePrice() {
+                    const pricePerYear = 10;
+                    
+                    const priceElement = document.getElementById("price");
+                    const durationElement = document.getElementById("duration");
+                    
+                    const duration = durationElement.value;
+                    const price = duration * pricePerYear;
 
-                if (!response.ok) {
-                    throw new Error('Network response was not ok ' + response.statusText);
+                    priceElement.setAttribute("value", `${price}`);
                 }
-                const temp = await response.json();
-                console.log(data)
-                document.getElementById("main-content").style.display = "none";
-                document.getElementById("success-box").style.display = "block";
+
+                async function autoCompleteUserData() {
+                    const endpoint = `${API_URI}/user/` + localStorage.getItem("userId");
+                    const response = await fetch(endpoint)
+                    
+                    if(response.ok) {
+                        const data = await response.json();
+                        document.getElementById("name").value = data.name;
+                        document.getElementById("surname").value = data.surname;
+                        document.getElementById("email").value = data.email;
+                    }
+                }
             }
-
-            function updatePrice() {
-                const pricePerYear = 10;
-                
-                const priceElement = document.getElementById("price");
-                const durationElement = document.getElementById("duration");
-                
-                const duration = durationElement.value;
-                const price = duration * pricePerYear;
-
-                priceElement.setAttribute("value", `${price}`);
-            }
-
         </script>
     </body>
 </html>

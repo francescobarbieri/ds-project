@@ -5,4 +5,3 @@ it/unimib/sd2024/model/User.class
 it/unimib/sd2024/DomainsResource.class
 it/unimib/sd2024/JsonException.class
 it/unimib/sd2024/UserResource.class
-it/unimib/sd2024/model/PurchaseRequest.class

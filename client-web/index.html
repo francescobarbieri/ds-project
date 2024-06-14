@@ -101,8 +101,9 @@
 
                 const response = await fetch(endpoint);
                 if(!response.ok) {
-                    if(false) { // response.status === 409
+                    if(response.status == 409) {
                         const errorBox = document.getElementById("error-box");
+                        errorBox.innerText = "The domain already exists.";
                         errorBox.style.display = "block";
                         return;
                     } else {
