@@ -78,7 +78,6 @@ public class DomainsResource {
             Client client = new Client("localhost", 3030);
             String command = "DOMAIN CHECK " + domain;
             String response = client.sendCommand(command);
-            client.close();
 
             if("OK".equals(response.trim())) {
                 StringBuilder jsonString = new StringBuilder();
@@ -86,6 +85,8 @@ public class DomainsResource {
                 jsonString.append("\"availability\": true }");
         
                 String jsonResponse = jsonString.toString(); 
+
+                client.close();
 
                 return Response.ok(jsonResponse, MediaType.APPLICATION_JSON)
                     .header("Access-Control-Allow-Origin", "*")
@@ -97,7 +98,38 @@ public class DomainsResource {
                     .header("Access-Control-Request-Headers", "origin, x-request-with")
                 .build();
             } else {
-                return Response.status(Response.Status.CONFLICT).entity(response)
+                // Domain not available
+                // Get domain infos
+                command = "DOMAIN GET " + domain;
+                response = client.sendCommand(command);
+
+                // Extract propietary userId and expiration date from json
+                JsonNode jsonNodeDomain = mapper.readTree(response);
+                String userId = getFieldValue(jsonNodeDomain, "userId");
+                String expiryDate = getFieldValue(jsonNodeDomain, "expiryDate");
+
+                // Get userId infos
+                command = "USER GET " + userId;
+                response = client.sendCommand(command);
+
+                // Extract user infos from json
+                JsonNode jsonNodeUser = mapper.readTree(response);
+                String name = getFieldValue(jsonNodeUser, "name");
+                String surname = getFieldValue(jsonNodeUser, "surname");
+                String email = getFieldValue(jsonNodeUser, "email");
+
+                client.close();
+
+                // Compose response JSON
+                StringBuilder jsonString = new StringBuilder();
+                jsonString.append("{\"name\": \"" + name + "\",");
+                jsonString.append("\"surname\": \"" + surname + "\",");
+                jsonString.append("\"email\": \"" + email + "\",");
+                jsonString.append("\"expiryDate\": \"" + expiryDate + "\" }");
+        
+                String jsonResponse = jsonString.toString(); 
+
+                return Response.status(Response.Status.CONFLICT).entity(jsonResponse)
                     .header("Access-Control-Allow-Origin", "*")
                     .header("Access-Control-Allow-Headers", "*")
                     .header("Access-Control-Allow-Credentials", "false")
@@ -187,5 +219,13 @@ public class DomainsResource {
         }
 
         return null;
+    }
+
+    private String getFieldValue(JsonNode jsonNode, String fieldName) {
+        JsonNode fieldNode = jsonNode.get(fieldName);
+        if(fieldName == null) {
+            System.out.println("Field " + fieldName + " is missing or null.");
+        }
+        return fieldNode != null ? fieldNode.asText() : null;
     }
 }

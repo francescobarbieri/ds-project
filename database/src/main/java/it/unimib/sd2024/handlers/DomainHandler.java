@@ -44,6 +44,7 @@ public class DomainHandler {
         long expiryDate = Long.parseLong(parts[5]);
 
         if(domains.containsKey(name)) {
+            System.out.println("ERROR: Domain " + name + " already exists");
             return "ERROR: Domain " + name + " already exists\n";
         }
 
@@ -62,7 +63,8 @@ public class DomainHandler {
         } else if (System.currentTimeMillis() > domain.getExpiryDate()) {
             return "OK\n";
         } else {
-            return "ERROR: Domain " + name + " is not available";
+            System.out.println("ERROR: Domain " + name + " already exists");
+            return "ERROR: Domain " + name + " is not available\n";
         }
     }
 
@@ -75,9 +77,9 @@ public class DomainHandler {
         }
         // Returns only userId domains
         else if (parts.length == 3) {
-            String userId = parts[2];
+            String domainName = parts[2];
             return domains.values().stream()
-                .filter(domain -> userId.equals(domain.getUserId()))
+                .filter(domain -> domainName.equals(domain.getDomainName()))
                 .map(Domain::toJSON)
                 .collect(Collectors.joining("\n")) + "\n";
         } else {

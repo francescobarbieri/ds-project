@@ -9,10 +9,12 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 
+import it.unimib.sd2024.model.Domain;
 import it.unimib.sd2024.model.User;
 
 public class UserHandler {

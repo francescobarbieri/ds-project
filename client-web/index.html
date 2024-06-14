@@ -57,19 +57,19 @@
                     <br />
                     <div>
                         <span style="font-weight: 500">Name:</span>
-                        <span>Marco</span>
+                        <span class="name">Marco</span>
                     </div>
                     <div>
                         <span style="font-weight: 500">Surname:</span>
-                        <span>Aurelio</span>
+                        <span class="surname">Aurelio</span>
                     </div>
                     <div>
                         <span style="font-weight: 500">Email:</span>
-                        <span>marcoaurelio@gmail.com</span>
+                        <span class="email">marcoaurelio@gmail.com</span>
                     </div>
                     <div>
                         <span style="font-weight: 500">Expiration:</span>
-                        <span>12 Giugno 2024</span>
+                        <span class="expiry">12 Giugno 2024</span>
                     </div>
                     <br />
                     Try with a different one.
@@ -102,8 +102,14 @@
                 const response = await fetch(endpoint);
                 if(!response.ok) {
                     if(response.status == 409) {
-                        const errorBox = document.getElementById("error-box");
-                        errorBox.innerText = "The domain already exists.";
+                        const data = await response.json();
+
+                        const errorBox = document.getElementById("error-box");                
+                        errorBox.querySelector(".name").innerHTML = data.name;
+                        errorBox.querySelector(".surname").innerHTML = data.surname;
+                        errorBox.querySelector(".email").innerHTML = data.email;
+                        errorBox.querySelector(".expiry").innerHTML = new Date(Number(data.expiryDate)).toLocaleDateString();
+
                         errorBox.style.display = "block";
                         return;
                     } else {
