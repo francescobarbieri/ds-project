@@ -68,12 +68,12 @@ public class DomainsResource {
             String response;
             if(userId == null || userId == "") {
                 Client client = new Client("localhost", 3030);
-                String command = "DOMAIN GET";
+                String command = "DOMAIN GETALL";
                 response = client.sendCommand(command);
                 client.close();
             } else {
                 Client client = new Client("localhost", 3030);
-                String command = "DOMAIN GET " + userId;
+                String command = "DOMAIN GETALL " + userId;
                 response = client.sendCommand(command);
                 client.close();
             }
@@ -197,76 +197,6 @@ public class DomainsResource {
                 .header("Access-Control-Request-Headers", "origin, x-request-with")
                 .build();
         }
-    }
-
-    @Path("/{domain}/buy")
-    @OPTIONS
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response avoidCORSBlocking() {
-        return Response.ok()
-            .header("Access-Control-Allow-Origin", "*")
-            .header("Access-Control-Allow-Methods", "*")
-            .header("Access-Control-Allow-Headers", "*")
-            .header("Access-Control-Allow-Credentials", "false")
-            .header("Access-Control-Max-Age", "3600")
-            .header("Access-Control-Request-Method", "*")
-            .header("Access-Control-Request-Headers", "origin, x-request-with")
-            .build();
-    }
-
-    /**
-    * Implementation of POST "/{domain}/buy".
-    */
-
-    @Path("/{domain}/buy")
-    @POST
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response buyDomain(@PathParam("domain") String domain, String body) {
-
-        try {
-            JsonNode jsonNode = mapper.readTree(body);
-
-            String userId = jsonNode.get("userId").asText();
-            int duration = jsonNode.get("duration").asInt();
-            long now = System.currentTimeMillis();
-            long expiryDate = System.currentTimeMillis() + 365 * 24 * 60 * 60 * 1000L * duration;
-
-            
-            Client client = new Client("localhost", 3030);
-            String domainCommand = "DOMAIN SET " + domain + " " + userId + " " + now + " " + expiryDate;
-            String domainResponse = client.sendCommand(domainCommand);
-
-            Response.status(Response.Status.OK)
-                .header("Access-Control-Allow-Origin", "*")
-                .header("Access-Control-Allow-Methods", "*")
-                .header("Access-Control-Allow-Headers", "*")
-                .header("Access-Control-Allow-Credentials", "false")
-                .header("Access-Control-Max-Age", "3600")
-                .header("Access-Control-Request-Method", "*")
-                .header("Access-Control-Request-Headers", "origin, x-request-with")
-                .build();
-
-            //TODO: order part
-
-            // String orderCommand = "ORDER SET " + domain + " " + userId + " " + duration + " " + now;
-            // String orderResponse = client.sendCommand(domainCommand);
-            
-            client.close();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage())
-            .header("Access-Control-Allow-Origin", "*")
-            .header("Access-Control-Allow-Headers", "*")
-            .header("Access-Control-Allow-Credentials", "false")
-            .header("Access-Control-Max-Age", "3600")
-            .header("Access-Control-Request-Method", "*")
-            .header("Access-Control-Request-Headers", "origin, x-request-with")
-            .build();
-        }
-
-        return null;
     }
 
     private String getFieldValue(JsonNode jsonNode, String fieldName) {

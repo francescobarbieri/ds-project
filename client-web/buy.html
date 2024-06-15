@@ -98,7 +98,6 @@
                     You successfully bought the domain!
                 </div>
                 <div class="error-box" id="error-box" hidden>
-                    You need to insert a user ID in the navbar to proceed.
                 </div>
             </div>
         </div>
@@ -137,32 +136,42 @@
                     event.preventDefault();
 
                     if(!localStorage.getItem("userId")) {
-                        document.getElementById("error-box").style.display = "block";
+                        const errorBox = document.getElementById("error-box");
+                        errorBox.innerText = "You need to insert a valid user ID in the navbar to proceed.";
+                        errorBox.style.display = "block";
                         return;
                     }
 
                     const form = document.getElementById("buy-form");
                     const formData = new FormData(form);
 
-                    const domainData = {
-                        userId: localStorage.getItem("userId"),
-                        duration: formData.get("duration"),
+                    const params = new Proxy(new URLSearchParams(window.location.search), {
+                        get: (searchParams, prop) => searchParams.get(prop),
+                    });
+
+                    let operation = params.operation;
+
+                    if(operation == null) {
+                        operation = "purchase";
+                    } else {
+                        operation = "renewal";
                     }
 
                     //TODO: unbind price
-                    const orderData = {
+                    const data = {
                         userId: localStorage.getItem("userId"),
+                        duration: formData.get("duration"),
                         price: "12",
                         domain: urlParams.get('domain'),
                         accountHolder: formData.get("accountholder"),
                         cardNumber: formData.get("card-number"),
                         cvv: formData.get("cvv"),
+                        operation: operation,
                     }
                     
-                    const domainEndpoint = `${API_URI}/domains/${urlParams.get('domain')}/buy`;
-                    const orderEndpoint = `${API_URI}/orders`;
+                    const endpoint = `${API_URI}/orders`;
                     
-                    const domainResponse = await fetch(domainEndpoint, {
+                    const response = await fetch(endpoint, {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
@@ -173,18 +182,11 @@
                             "Sec-Fetch-Mode": "cors",
                             "Sec-Fetch-Site": "same-site"
                         },
-                        body: JSON.stringify(domainData),
+                        body: JSON.stringify(data),
                     });
                     
-                    const orderResponse = await fetch(orderEndpoint, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify(orderData),
-                    });
-                    
-                    if (!domainResponse.ok && !orderResponse.ok) {
+                    // TODO: handle if another user is trying to buy simultaneously
+                    if (!response.ok) {
                         throw new Error('Network response was not ok ' + domainResponse.statusText);
                     }
 

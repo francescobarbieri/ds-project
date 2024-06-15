@@ -109,6 +109,8 @@ public class UserResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response registerUser(String jsonString) {
 
+        //TODO: seguire la convenzione delle altre classi Resource per ottenere i dati dal json
+
         JSONObject jsonObject = new JSONObject(jsonString);
 
         try {           

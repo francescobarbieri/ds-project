@@ -34,6 +34,8 @@ public class DomainHandler {
                 return check(parts);
             case "GET":
                 return get(parts);
+            case "GETALL":
+                return getall(parts);
             default:
                 return "ERROR: Unknown command. \n";
         }
@@ -62,9 +64,12 @@ public class DomainHandler {
         Domain domain = domains.get(name);
 
         if(domain == null) {
+            System.out.println("Domain " + name + " is available");
             return "OK\n";
-        } else if (System.currentTimeMillis() > domain.getExpiryDate()) {
-            return "OK\n";
+        //TODO: check expiration date
+        //} else if (System.currentTimeMillis() > domain.getExpiryDate()) {
+        //    System.out.println("Domain " + name + " is available 2");
+        //    return "OK\n";
         } else {
             System.out.println("ERROR: Domain " + name + " is not available");
             return "ERROR: Domain " + name + " is not available\n";
@@ -72,6 +77,23 @@ public class DomainHandler {
     }
 
     private String get(String[] parts) {
+        if(parts.length != 3) return "ERROR: GET command must be in the format: DOMAIN GET <domainName> \n";
+        String name = parts[2];
+        Domain domain = domains.get(name);
+
+        if(domain == null) {
+            return "ERROR: Domain not found\n";
+        } else {
+            try {
+                return objectMapper.writeValueAsString(domain) + "\n";
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+                return "ERROR: Unable to process the request\n";
+            }
+        }
+    }
+
+    private String getall(String[] parts) {
         try {
             // Returns all domains
             if(parts.length == 2) {
@@ -88,14 +110,13 @@ public class DomainHandler {
 
                 return objectMapper.writeValueAsString(domainList) + "\n";
             } else {
-                return "ERROR: GET command must be in the format: DOMAIN GET <optional: userId> \n";
+                return "ERROR: GETALL command must be in the format: DOMAIN GETALL <optional: userId> \n";
             }
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
         return "Unknown error\n";
     }
-
 
     private void loadDomains() {
         if(domainFile.exists()) {
