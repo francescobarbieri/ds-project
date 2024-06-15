@@ -1,10 +1,6 @@
 package it.unimib.sd2024;
 
 import java.net.*;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.ServerSocketChannel;
-
 import java.util.Iterator;
 
 import javax.swing.text.html.StyleSheet;
@@ -91,10 +87,22 @@ public class Main {
         String receivedString = new String(buffer.array()).trim();
         System.out.println("Received: " + receivedString);
 
-        String resposnse = handleCommand(receivedString);
-        buffer.flip();
-        buffer = ByteBuffer.wrap(resposnse.getBytes());
-        socketChannel.write(buffer);
+        String response = handleCommand(receivedString);
+        byte[] responseBytes = response.getBytes();
+        int responseLength = responseBytes.length;
+        int offset = 0;
+
+        // Write the response in chunks
+        while (offset < responseLength) {
+            int bytesToWrite = Math.min(responseLength - offset, buffer.capacity());
+            buffer.clear();
+            buffer.put(responseBytes, offset, bytesToWrite);
+            buffer.flip();
+            while (buffer.hasRemaining()) {
+                socketChannel.write(buffer);
+            }
+            offset += bytesToWrite;
+        }
     }
 
     private String handleCommand(String command) {

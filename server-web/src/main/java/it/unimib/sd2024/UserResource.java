@@ -66,7 +66,7 @@ public class UserResource {
             String response = client.sendCommand(command);
             client.close();
 
-            if(response.equals("NULL\n")) {
+            if("NULL".equals(response.trim())) {
                 return Response.status(Response.Status.NOT_FOUND)
                     .header("Access-Control-Allow-Origin", "*")
                     .header("Access-Control-Allow-Headers", "*")

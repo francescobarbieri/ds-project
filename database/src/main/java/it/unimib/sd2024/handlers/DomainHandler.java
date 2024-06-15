@@ -2,11 +2,14 @@ package it.unimib.sd2024.handlers;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import it.unimib.sd2024.model.Domain;
@@ -63,28 +66,32 @@ public class DomainHandler {
         } else if (System.currentTimeMillis() > domain.getExpiryDate()) {
             return "OK\n";
         } else {
-            System.out.println("ERROR: Domain " + name + " already exists");
+            System.out.println("ERROR: Domain " + name + " is not available");
             return "ERROR: Domain " + name + " is not available\n";
         }
     }
 
     private String get(String[] parts) {
         // Returns all domains
-        if(parts.length == 2) {
-            return domains.values().stream()
-                .map(Domain::toJSON)
-                .collect(Collectors.joining("\n")) + "\n";
+        try {
+            if(parts.length == 2) {
+                List<Domain> domainList = new ArrayList<>(domains.values());
+                return objectMapper.writeValueAsString(domainList + "\n");
+            }
+            // Returns only userId domains
+            else if (parts.length == 3) {
+                String domainName = parts[2];
+                return domains.values().stream()
+                    .filter(domain -> domainName.equals(domain.getDomainName()))
+                    .map(Domain::toJSON)
+                    .collect(Collectors.joining("\n")) + "\n";
+            } else {
+                return "ERROR: GET command must be in the format: DOMAIN GET <optional: userId> \n";
+            }
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
         }
-        // Returns only userId domains
-        else if (parts.length == 3) {
-            String domainName = parts[2];
-            return domains.values().stream()
-                .filter(domain -> domainName.equals(domain.getDomainName()))
-                .map(Domain::toJSON)
-                .collect(Collectors.joining("\n")) + "\n";
-        } else {
-            return "ERROR: GET command must be in the format: DOMAIN GET <optional: userId> \n";
-        }
+        return "Unknown error\n";
     }
 
 

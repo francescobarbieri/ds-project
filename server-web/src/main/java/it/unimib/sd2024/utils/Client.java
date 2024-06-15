@@ -16,7 +16,11 @@ public class Client {
 
     public String sendCommand(String command) throws IOException {
         out.println(command);
-        return in.readLine();
+        String temp = in.readLine();
+
+        System.out.println(temp);
+
+        return temp;
     }
 
     public void close() throws IOException {
