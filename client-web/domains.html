@@ -52,8 +52,12 @@
     <script>
         window.onload = init();
         async function init() {
-            const endpoint = `${API_URI}/domains`;
-            const response = fetch(endpoint);
+            let endpoint = `${API_URI}/domains`
+            if(localStorage.getItem("userId") != null) {
+                endpoint += "?userId=" + localStorage.getItem("userId");
+            }
+
+            const response = await fetch(endpoint);
 
             if(response.ok) {
                 const domainContainer = document.getElementById("domain-container");
@@ -67,17 +71,19 @@
                     // Create and append the domain-name element
                     const domainName = document.createElement('div');
                     domainName.classList.add('domain-name');
-                    domainName.textContent = item.domain; // Replace 'item.domain' with your actual data property
+                    domainName.textContent = item.domainName; // Replace 'item.domain' with your actual data property
                     domainBox.appendChild(domainName);
 
                     // Create and append the registered-at element
                     const registeredAt = document.createElement('div');
-                    registeredAt.innerHTML = `<span style="font-weight: 500;">Registered at: </span><span class="registered-at">${item.registered}</span>`;
+                    const registeredDate = new Date(Number(item.purchaseDate)).toLocaleDateString()
+                    registeredAt.innerHTML = `<span style="font-weight: 500;">Registered at: </span><span class="registered-at">${registeredDate}</span>`;
                     domainBox.appendChild(registeredAt);
 
                     // Create and append the expiration element
                     const expiration = document.createElement('div');
-                    expiration.innerHTML = `<span style="font-weight: 500;">Expiration: </span><span class="expiration">${item.expiration}</span>`;
+                    const expirationDate = new Date(Number(item.expiryDate)).toLocaleDateString()
+                    expiration.innerHTML = `<span style="font-weight: 500;">Expiration: </span><span class="expiration">${expirationDate}</span>`;
                     domainBox.appendChild(expiration);
 
                     // Append the domain-box element to the domain-container

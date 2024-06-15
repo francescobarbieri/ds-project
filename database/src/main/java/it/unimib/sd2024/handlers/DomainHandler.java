@@ -72,19 +72,21 @@ public class DomainHandler {
     }
 
     private String get(String[] parts) {
-        // Returns all domains
         try {
+            // Returns all domains
             if(parts.length == 2) {
                 List<Domain> domainList = new ArrayList<>(domains.values());
-                return objectMapper.writeValueAsString(domainList + "\n");
+                return objectMapper.writeValueAsString(domainList) + "\n";
             }
             // Returns only userId domains
             else if (parts.length == 3) {
-                String domainName = parts[2];
-                return domains.values().stream()
-                    .filter(domain -> domainName.equals(domain.getDomainName()))
-                    .map(Domain::toJSON)
-                    .collect(Collectors.joining("\n")) + "\n";
+                String userId = parts[2];
+
+                List<Domain> domainList = domains.values().stream()
+                    .filter(domain -> userId.equals(domain.getUserId()))
+                    .collect(Collectors.toList());
+
+                return objectMapper.writeValueAsString(domainList) + "\n";
             } else {
                 return "ERROR: GET command must be in the format: DOMAIN GET <optional: userId> \n";
             }

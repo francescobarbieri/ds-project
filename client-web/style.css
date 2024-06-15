@@ -1,5 +1,5 @@
 :root {
-    --light-gray: #cecece;
+    --light-gray: #ededed;
     --green: #00ff40;
     --light-green: #8fe184;
     --red: #ff0000;
@@ -154,6 +154,7 @@ footer {
     padding: 1rem;
     border-radius: 6px;
     background-color: var(--light-gray);
+    margin-bottom: 2rem;
 }
 
 .domain-name {

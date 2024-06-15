@@ -6,6 +6,8 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.print.attribute.standard.Media;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -43,7 +45,6 @@ public class DomainsResource {
     static { }
 
     @OPTIONS
-    @Produces(MediaType.APPLICATION_JSON)
     public Response avoidCORSBlocking2() {
         return Response.ok()
             .header("Access-Control-Allow-Origin", "*")
@@ -61,9 +62,56 @@ public class DomainsResource {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getDomains() {
+    public Response getDomains(@QueryParam("userId") String userId) {
 
-        return null;
+        try {
+            String response;
+            if(userId == null || userId == "") {
+                Client client = new Client("localhost", 3030);
+                String command = "DOMAIN GET";
+                response = client.sendCommand(command);
+                client.close();
+            } else {
+                Client client = new Client("localhost", 3030);
+                String command = "DOMAIN GET " + userId;
+                response = client.sendCommand(command);
+                client.close();
+            }
+
+
+            if(response == "") { // TODO: error
+                return Response.status(Response.Status.NOT_FOUND)
+                    .header("Access-Control-Allow-Origin", "*")
+                    .header("Access-Control-Allow-Methods", "*")
+                    .header("Access-Control-Allow-Headers", "*")
+                    .header("Access-Control-Allow-Credentials", "false")
+                    .header("Access-Control-Max-Age", "3600")
+                    .header("Access-Control-Request-Method", "*")
+                    .header("Access-Control-Request-Headers", "origin, x-request-with")
+                .build();
+            } else {
+                return Response.ok(response, MediaType.APPLICATION_JSON)
+                    .header("Access-Control-Allow-Origin", "*")
+                    .header("Access-Control-Allow-Methods", "*")
+                    .header("Access-Control-Allow-Headers", "*")
+                    .header("Access-Control-Allow-Credentials", "false")
+                    .header("Access-Control-Max-Age", "3600")
+                    .header("Access-Control-Request-Method", "*")
+                    .header("Access-Control-Request-Headers", "origin, x-request-with")
+                .build();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .header("Access-Control-Allow-Origin", "*")
+                .header("Access-Control-Allow-Methods", "*")
+                .header("Access-Control-Allow-Headers", "*")
+                .header("Access-Control-Allow-Credentials", "false")
+                .header("Access-Control-Max-Age", "3600")
+                .header("Access-Control-Request-Method", "*")
+                .header("Access-Control-Request-Headers", "origin, x-request-with")
+            .build();
+        }
     }
 
     /**
