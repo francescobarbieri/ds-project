@@ -5,6 +5,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.print.attribute.standard.Media;
 
@@ -41,8 +43,6 @@ import jakarta.ws.rs.core.Response.Status;
 @Path("domains")
 public class DomainsResource {
     ObjectMapper mapper = new ObjectMapper();
-
-    static { }
 
     @OPTIONS
     public Response avoidCORSBlocking2() {
@@ -121,6 +121,18 @@ public class DomainsResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response checkAvailabilityDomain(@PathParam("domain") String domain) {
+
+        if( ! domainValidator(domain)) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("ERROR: Invalid domain.")
+                .header("Access-Control-Allow-Origin", "*")
+                .header("Access-Control-Allow-Methods", "*")
+                .header("Access-Control-Allow-Headers", "*")
+                .header("Access-Control-Allow-Credentials", "false")
+                .header("Access-Control-Max-Age", "3600")
+                .header("Access-Control-Request-Method", "*")
+                .header("Access-Control-Request-Headers", "origin, x-request-with")
+            .build();
+        }
 
         try {
             Client client = new Client("localhost", 3030);
@@ -205,5 +217,15 @@ public class DomainsResource {
             System.out.println("Field " + fieldName + " is missing or null.");
         }
         return fieldNode != null ? fieldNode.asText() : null;
+    }
+
+    private boolean domainValidator(String domain) {
+        String DOMAIN_NAME_WITH_TLD_REGEX = "^((?!-)[A-Za-z0-9-]{1,63}(?<!-)\\.)+[A-Za-z]{2,6}$";
+        Pattern DOMAIN_NAME_WITH_TLD_PATTERN = Pattern.compile(DOMAIN_NAME_WITH_TLD_REGEX);
+
+        if(domain == null) return false;
+
+        Matcher matcher = DOMAIN_NAME_WITH_TLD_PATTERN.matcher(domain);
+        return matcher.matches();
     }
 }

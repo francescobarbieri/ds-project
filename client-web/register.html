@@ -49,7 +49,7 @@
         </div>
         <div class="success-box" id="success-box" hidden>
             Your account has been registered. This is your account id:
-            <span style="font-size: 1.4rem; font-weight: 500;">43</span><br>
+            <span style="font-size: 1.4rem; font-weight: 500;"></span><br>
             It has been automatically added to the user id field in the navbar. If you want to change it type in it manually the desired user ID.
         </div>
     </div>
@@ -112,9 +112,10 @@
                     errorBox.innerText = "This email is already registered.";
                     errorBox.style.display = "block";
                 } else {
+                    const data = await response.text();
                     document.getElementById("main-content").style.display = "none";
                     const errorBox = document.getElementById("error-box");
-                    errorBox.innerText = "Unknown error.";
+                    errorBox.innerText = data;
                     errorBox.style.display = "block";
                 }
             })

@@ -47,8 +47,6 @@ public class OrderHandler {
             return "ERROR: SET command must be in the format: ORDER SET\n";
         } 
 
-        System.out.println(parts);
-
         String domain = parts[2];
         String userId = parts[3];
         String price = parts[4];

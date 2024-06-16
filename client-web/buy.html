@@ -152,19 +152,21 @@
                     if(!localStorage.getItem("userId")) {
                         const errorBox = document.getElementById("error-box");
                         errorBox.innerText = "You need to insert a valid user ID in the navbar to proceed.";
-                        errorBox.style.display = "block";
+                        errorBox.removeAttribute("hidden");
                         return;
                     }
 
                     const form = document.getElementById("buy-form");
                     const formData = new FormData(form);
 
+                    console.log(document.getElementById("price").value);
+
                     //TODO: unbind price
                     const data = {
                         userId: localStorage.getItem("userId"),
                         duration: formData.get("duration"),
-                        price: "12",
-                        domain: urlParams.get('domain'),
+                        price: document.getElementById("price").value,
+                        domain: urlParams.get("domain"),
                         accountHolder: formData.get("accountholder"),
                         cardNumber: formData.get("card-number"),
                         cvv: formData.get("cvv"),
@@ -189,11 +191,15 @@
                     
                     // TODO: handle if another user is trying to buy simultaneously
                     if (!response.ok) {
-                        throw new Error('Network response was not ok ' + domainResponse.statusText);
+                        const errorMessage = await response.text();
+                        document.getElementById("main-content").style.display = "none";
+                        const errorBox = document.getElementById("error-box");
+                        errorBox.innerText = errorMessage;
+                        errorBox.style.display = "block";
+                    } else {
+                        document.getElementById("main-content").style.display = "none";
+                        document.getElementById("success-box").style.display = "block";
                     }
-
-                    document.getElementById("main-content").style.display = "none";
-                    document.getElementById("success-box").style.display = "block";
                 }
 
                 function updatePrice() {

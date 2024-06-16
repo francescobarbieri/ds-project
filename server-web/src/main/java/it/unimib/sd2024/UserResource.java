@@ -5,8 +5,13 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.print.attribute.standard.Media;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.json.JSONObject;
@@ -38,7 +43,6 @@ import jakarta.ws.rs.core.Response.Status;
 @Path("user")
 public class UserResource {
     private ObjectMapper objectMapper = new ObjectMapper();
-    static { }
 
     @OPTIONS
     @Produces(MediaType.APPLICATION_JSON)
@@ -108,14 +112,26 @@ public class UserResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response registerUser(String jsonString) {
+        try {
+            JsonNode jsonNode = objectMapper.readTree(jsonString);
 
-        //TODO: seguire la convenzione delle altre classi Resource per ottenere i dati dal json
+            String name = getFieldValue(jsonNode, "name");
+            String surname = getFieldValue(jsonNode, "surname");
+            String email = getFieldValue(jsonNode, "email");
 
-        JSONObject jsonObject = new JSONObject(jsonString);
+            if(!emailValidator(email)) {
+                return Response.status(Response.Status.BAD_REQUEST).entity("ERROR: Invalid email.")
+                    .header("Access-Control-Allow-Origin", "*")
+                    .header("Access-Control-Allow-Headers", "*")
+                    .header("Access-Control-Allow-Credentials", "false")
+                    .header("Access-Control-Max-Age", "3600")
+                    .header("Access-Control-Request-Method", "*")
+                    .header("Access-Control-Request-Headers", "origin, x-request-with")
+                .build();
+            }
 
-        try {           
             Client client = new Client("localhost", 3030);
-            String command = String.format("USER SET %s %s %s", jsonObject.getString("email"), jsonObject.getString("name"), jsonObject.getString("surname"));
+            String command = String.format("USER SET %s %s %s", email, name, surname);
             String response = client.sendCommand(command);
             client.close();
 
@@ -126,12 +142,12 @@ public class UserResource {
                 jsonResponse.append("{\"id\": \"" + userId + "\"}");
 
                 return Response.ok(jsonResponse.toString(), MediaType.APPLICATION_JSON)
-                .header("Access-Control-Allow-Origin", "*")
-                .header("Access-Control-Allow-Headers", "*")
-                .header("Access-Control-Allow-Credentials", "false")
-                .header("Access-Control-Max-Age", "3600")
-                .header("Access-Control-Request-Method", "*")
-                .header("Access-Control-Request-Headers", "origin, x-request-with")
+                    .header("Access-Control-Allow-Origin", "*")
+                    .header("Access-Control-Allow-Headers", "*")
+                    .header("Access-Control-Allow-Credentials", "false")
+                    .header("Access-Control-Max-Age", "3600")
+                    .header("Access-Control-Request-Method", "*")
+                    .header("Access-Control-Request-Headers", "origin, x-request-with")
                 .build();
             } else {
                 return Response.status(Response.Status.CONFLICT).entity(response)
@@ -155,4 +171,23 @@ public class UserResource {
                 .build();
         }
     }
+
+    private String getFieldValue(JsonNode jsonNode, String fieldName) {
+        JsonNode fieldNode = jsonNode.get(fieldName);
+        if(fieldName == null) {
+            System.out.println("Field " + fieldName + " is missing or null.");
+        }
+        return fieldNode != null ? fieldNode.asText() : null;
+    }
+
+    private boolean emailValidator(String email) {
+        String EMAIL_REGEX = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$";
+        Pattern EMAIL_PATTERN = Pattern.compile(EMAIL_REGEX);
+
+        if(email == null) return false;
+
+        Matcher matcher = EMAIL_PATTERN.matcher(email);
+        return matcher.matches();
+    }
+    
 }

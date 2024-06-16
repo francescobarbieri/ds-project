@@ -52,6 +52,8 @@
                         name="domain"
                     />
                 </form>
+                <div class="error-box" id="general-error-box">
+                </div>
                 <div class="error-box" id="error-box">
                     This domain is already assigned to the user:
                     <br />
@@ -101,10 +103,20 @@
 
                 const response = await fetch(endpoint);
                 if(!response.ok) {
-                    if(response.status == 409) {
-                        const data = await response.json();
+                    if(response.status == 400) {
+                        const data = await response.text();
+                        const errorBox = document.getElementById("general-error-box");
+                        errorBox.innerText = data;
+                        errorBox.style.display = "block";
 
-                        const errorBox = document.getElementById("error-box");                
+                        return;
+                    }
+                    else if(response.status == 409) {
+                        const data = await response.json();
+                        
+                        document.getElementById("general-error-box").style.display = "none";
+                        const errorBox = document.getElementById("error-box");
+
                         errorBox.querySelector(".name").innerHTML = data.name;
                         errorBox.querySelector(".surname").innerHTML = data.surname;
                         errorBox.querySelector(".email").innerHTML = data.email;
