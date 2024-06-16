@@ -1,41 +1,22 @@
 package it.unimib.sd2024;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.print.attribute.standard.Media;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import it.unimib.sd2024.model.Domain;
-
-import it.unimib.sd2024.model.User;
 import it.unimib.sd2024.utils.Client;
-import jakarta.json.JsonException;
-import jakarta.json.bind.JsonbBuilder;
-import jakarta.json.bind.JsonbException;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.DELETE;
+import it.unimib.sd2024.utils.ResponseBuilderUtil;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.OPTIONS;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
-import jakarta.ws.rs.container.ContainerRequestContext;
-import jakarta.ws.rs.container.ContainerResponseContext;
-import jakarta.ws.rs.container.ContainerResponseFilter;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.Response.Status;
 
 /**
  * Represents the "domain" resource in "http://localhost:8080/domains".
@@ -46,15 +27,7 @@ public class DomainsResource {
 
     @OPTIONS
     public Response avoidCORSBlocking2() {
-        return Response.ok()
-            .header("Access-Control-Allow-Origin", "*")
-            .header("Access-Control-Allow-Methods", "*")
-            .header("Access-Control-Allow-Headers", "*")
-            .header("Access-Control-Allow-Credentials", "false")
-            .header("Access-Control-Max-Age", "3600")
-            .header("Access-Control-Request-Method", "*")
-            .header("Access-Control-Request-Headers", "origin, x-request-with")
-            .build();
+        return ResponseBuilderUtil.buildOkResponse();
     }
 
     /**
@@ -78,39 +51,14 @@ public class DomainsResource {
                 client.close();
             }
 
-
             if(response == "") { // TODO: handle error
-                return Response.status(Response.Status.NOT_FOUND)
-                    .header("Access-Control-Allow-Origin", "*")
-                    .header("Access-Control-Allow-Methods", "*")
-                    .header("Access-Control-Allow-Headers", "*")
-                    .header("Access-Control-Allow-Credentials", "false")
-                    .header("Access-Control-Max-Age", "3600")
-                    .header("Access-Control-Request-Method", "*")
-                    .header("Access-Control-Request-Headers", "origin, x-request-with")
-                .build();
+                return ResponseBuilderUtil.build(Response.Status.NOT_FOUND);
             } else {
-                return Response.ok(response, MediaType.APPLICATION_JSON)
-                    .header("Access-Control-Allow-Origin", "*")
-                    .header("Access-Control-Allow-Methods", "*")
-                    .header("Access-Control-Allow-Headers", "*")
-                    .header("Access-Control-Allow-Credentials", "false")
-                    .header("Access-Control-Max-Age", "3600")
-                    .header("Access-Control-Request-Method", "*")
-                    .header("Access-Control-Request-Headers", "origin, x-request-with")
-                .build();
+                return ResponseBuilderUtil.buildOkResponse(response,  MediaType.APPLICATION_JSON);
             }
         } catch (IOException e) {
             e.printStackTrace();
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                .header("Access-Control-Allow-Origin", "*")
-                .header("Access-Control-Allow-Methods", "*")
-                .header("Access-Control-Allow-Headers", "*")
-                .header("Access-Control-Allow-Credentials", "false")
-                .header("Access-Control-Max-Age", "3600")
-                .header("Access-Control-Request-Method", "*")
-                .header("Access-Control-Request-Headers", "origin, x-request-with")
-            .build();
+            return ResponseBuilderUtil.build(Response.Status.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -123,15 +71,7 @@ public class DomainsResource {
     public Response checkAvailabilityDomain(@PathParam("domain") String domain) {
 
         if( ! domainValidator(domain)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("ERROR: Invalid domain.")
-                .header("Access-Control-Allow-Origin", "*")
-                .header("Access-Control-Allow-Methods", "*")
-                .header("Access-Control-Allow-Headers", "*")
-                .header("Access-Control-Allow-Credentials", "false")
-                .header("Access-Control-Max-Age", "3600")
-                .header("Access-Control-Request-Method", "*")
-                .header("Access-Control-Request-Headers", "origin, x-request-with")
-            .build();
+            return ResponseBuilderUtil.build(Response.Status.BAD_REQUEST, "ERROR: Invalid domain.");
         }
 
         try {
@@ -148,15 +88,7 @@ public class DomainsResource {
 
                 client.close();
 
-                return Response.ok(jsonResponse, MediaType.APPLICATION_JSON)
-                    .header("Access-Control-Allow-Origin", "*")
-                    .header("Access-Control-Allow-Methods", "*")
-                    .header("Access-Control-Allow-Headers", "*")
-                    .header("Access-Control-Allow-Credentials", "false")
-                    .header("Access-Control-Max-Age", "3600")
-                    .header("Access-Control-Request-Method", "*")
-                    .header("Access-Control-Request-Headers", "origin, x-request-with")
-                .build();
+                return ResponseBuilderUtil.buildOkResponse(jsonResponse, MediaType.APPLICATION_JSON);
             } else {
                 // Domain not available
                 // Get domain infos
@@ -189,25 +121,11 @@ public class DomainsResource {
         
                 String jsonResponse = jsonString.toString(); 
 
-                return Response.status(Response.Status.CONFLICT).entity(jsonResponse)
-                    .header("Access-Control-Allow-Origin", "*")
-                    .header("Access-Control-Allow-Headers", "*")
-                    .header("Access-Control-Allow-Credentials", "false")
-                    .header("Access-Control-Max-Age", "3600")
-                    .header("Access-Control-Request-Method", "*")
-                    .header("Access-Control-Request-Headers", "origin, x-request-with")
-                    .build();
+                return ResponseBuilderUtil.build(Response.Status.CONFLICT, jsonResponse);
             }
         } catch (IOException e) {
             e.printStackTrace();
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage())
-                .header("Access-Control-Allow-Origin", "*")
-                .header("Access-Control-Allow-Headers", "*")
-                .header("Access-Control-Allow-Credentials", "false")
-                .header("Access-Control-Max-Age", "3600")
-                .header("Access-Control-Request-Method", "*")
-                .header("Access-Control-Request-Headers", "origin, x-request-with")
-                .build();
+            return ResponseBuilderUtil.build(Response.Status.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
 

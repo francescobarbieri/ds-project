@@ -1,42 +1,24 @@
 package it.unimib.sd2024;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.sound.midi.SysexMessage;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import it.unimib.sd2024.model.Domain;
-import it.unimib.sd2024.model.User;
 import it.unimib.sd2024.utils.Client;
-import jakarta.json.JsonException;
-import jakarta.json.bind.JsonbBuilder;
-import jakarta.json.bind.JsonbException;
+import it.unimib.sd2024.utils.ResponseBuilderUtil;
 import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.OPTIONS;
 import jakarta.ws.rs.POST;
-import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
-import jakarta.ws.rs.container.ContainerRequestContext;
-import jakarta.ws.rs.container.ContainerResponseContext;
-import jakarta.ws.rs.container.ContainerResponseFilter;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.Response.Status;
 
 @Path("orders")
 public class OrderResource {
@@ -46,21 +28,12 @@ public class OrderResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response avoidCORSBlocking() {
-        return Response.ok()
-            .header("Access-Control-Allow-Origin", "*")
-            .header("Access-Control-Allow-Methods", "*")
-            .header("Access-Control-Allow-Headers", "*")
-            .header("Access-Control-Allow-Credentials", "false")
-            .header("Access-Control-Max-Age", "3600")
-            .header("Access-Control-Request-Method", "*")
-            .header("Access-Control-Request-Headers", "origin, x-request-with")
-            .build();
+        return ResponseBuilderUtil.buildOkResponse();
     }
 
     /**
      *  Implementazione di GET "/orders".
      */
-
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getOrder(@QueryParam("userId") String userId) {
@@ -78,38 +51,15 @@ public class OrderResource {
                 client.close();
             }
 
-            if(response == "") { //TODO: fare questa cosa
-                return Response.status(Response.Status.CONFLICT)
-                    .header("Access-Control-Allow-Origin", "*")
-                    .header("Access-Control-Allow-Methods", "*")
-                    .header("Access-Control-Allow-Headers", "*")
-                    .header("Access-Control-Allow-Credentials", "false")
-                    .header("Access-Control-Max-Age", "3600")
-                    .header("Access-Control-Request-Method", "*")
-                    .header("Access-Control-Request-Headers", "origin, x-request-with")
-                .build();
+            if(response == "") { //TODO: order not found (CREDO)
+                return ResponseBuilderUtil.build(Response.Status.CONFLICT);
             } else {
-                return Response.ok(response, MediaType.APPLICATION_JSON)
-                    .header("Access-Control-Allow-Origin", "*")
-                    .header("Access-Control-Allow-Methods", "*")
-                    .header("Access-Control-Allow-Headers", "*")
-                    .header("Access-Control-Allow-Credentials", "false")
-                    .header("Access-Control-Max-Age", "3600")
-                    .header("Access-Control-Request-Method", "*")
-                    .header("Access-Control-Request-Headers", "origin, x-request-with")
-                .build();
+
+                return ResponseBuilderUtil.buildOkResponse(response, MediaType.APPLICATION_JSON);
             }
         } catch (IOException e) {
             e.printStackTrace();
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                .header("Access-Control-Allow-Origin", "*")
-                .header("Access-Control-Allow-Methods", "*")
-                .header("Access-Control-Allow-Headers", "*")
-                .header("Access-Control-Allow-Credentials", "false")
-                .header("Access-Control-Max-Age", "3600")
-                .header("Access-Control-Request-Method", "*")
-                .header("Access-Control-Request-Headers", "origin, x-request-with")
-            .build();
+            return ResponseBuilderUtil.build(Response.Status.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -141,15 +91,7 @@ public class OrderResource {
                 else if (! carnNumberValidator(cardNumber)) throw new Exception("ERROR: Invalid card number. Use this for testing: 4532015112830366");
             } catch (Exception e) {
                 e.printStackTrace();
-                return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage())
-                    .header("Access-Control-Allow-Origin", "*")
-                    .header("Access-Control-Allow-Methods", "*")
-                    .header("Access-Control-Allow-Headers", "*")
-                    .header("Access-Control-Allow-Credentials", "false")
-                    .header("Access-Control-Max-Age", "3600")
-                    .header("Access-Control-Request-Method", "*")
-                    .header("Access-Control-Request-Headers", "origin, x-request-with")
-                .build();
+                return ResponseBuilderUtil.build(Response.Status.BAD_REQUEST, e.getMessage());
             }
             
             String operationDate = Long.toString(System.currentTimeMillis());
@@ -170,31 +112,15 @@ public class OrderResource {
                     orderResponse = client.sendCommand(orderCommand);            
 
                     // Add domain
-                    domainCommand = String.format("DOMAIN SET %s %s %s %s", domain, userId, operationDate, operationDate, expirationDate);
+                    domainCommand = String.format("DOMAIN SET %s %s %s %s", domain, userId, operationDate, expirationDate);
                     domainResponse = client.sendCommand(domainCommand);
 
                     client.close();
 
                     if("OK".equals(orderResponse.trim()) && "OK".equals(domainResponse.trim())) {
-                        return Response.ok()
-                            .header("Access-Control-Allow-Origin", "*")
-                            .header("Access-Control-Allow-Methods", "*")
-                            .header("Access-Control-Allow-Headers", "*")
-                            .header("Access-Control-Allow-Credentials", "false")
-                            .header("Access-Control-Max-Age", "3600")
-                            .header("Access-Control-Request-Method", "*")
-                            .header("Access-Control-Request-Headers", "origin, x-request-with")
-                        .build();
-                    } else if (domainResponse.trim().equals("ERROR: Domain polipo already exists")) {
-                        return Response.status(Response.Status.CONFLICT).entity(domainResponse)
-                            .header("Access-Control-Allow-Origin", "*")
-                            .header("Access-Control-Allow-Methods", "*")
-                            .header("Access-Control-Allow-Headers", "*")
-                            .header("Access-Control-Allow-Credentials", "false")
-                            .header("Access-Control-Max-Age", "3600")
-                            .header("Access-Control-Request-Method", "*")
-                            .header("Access-Control-Request-Headers", "origin, x-request-with")
-                        .build();
+                        return ResponseBuilderUtil.buildOkResponse();
+                    } else if (domainResponse.trim().equals("ERROR: Domain")) { //TODO: che è sta roba?!
+                        return ResponseBuilderUtil.build(Response.Status.CONFLICT, domainResponse);
                     }
 
                     break;
@@ -211,19 +137,10 @@ public class OrderResource {
 
                     // Check if domain is actually a userId's domain
                     if(! userId.trim().equals(userIdDomain.trim())) {
-
                         // Terminate connection
                         client.close();
 
-                        return Response.status(Response.Status.FORBIDDEN).entity("You don't have access to this operation")
-                            .header("Access-Control-Allow-Origin", "*")
-                            .header("Access-Control-Allow-Methods", "*")
-                            .header("Access-Control-Allow-Headers", "*")
-                            .header("Access-Control-Allow-Credentials", "false")
-                            .header("Access-Control-Max-Age", "3600")
-                            .header("Access-Control-Request-Method", "*")
-                            .header("Access-Control-Request-Headers", "origin, x-request-with")
-                        .build();
+                        return ResponseBuilderUtil.build(Response.Status.FORBIDDEN, "You don't have access to this operation");
                     } else {
                         // New expiration date string
                         String newExpiration = Long.toString(exiprationDomain + (duration * millsInAYear));
@@ -240,28 +157,12 @@ public class OrderResource {
 
                         // If both are okay returns okay response
                         if("OK".equals(domainResponse.trim()) && "OK".equals(orderResponse.trim())) {
-                            return Response.ok()
-                                .header("Access-Control-Allow-Origin", "*")
-                                .header("Access-Control-Allow-Methods", "*")
-                                .header("Access-Control-Allow-Headers", "*")
-                                .header("Access-Control-Allow-Credentials", "false")
-                                .header("Access-Control-Max-Age", "3600")
-                                .header("Access-Control-Request-Method", "*")
-                                .header("Access-Control-Request-Headers", "origin, x-request-with")
-                            .build();
+                            return ResponseBuilderUtil.buildOkResponse();
                         }
                     }
                 default:
                     // If operation different from purchase or renewal
-                    return Response.status(Response.Status.BAD_REQUEST).entity("ERROR: Unkwon operation type.")
-                        .header("Access-Control-Allow-Origin", "*")
-                        .header("Access-Control-Allow-Methods", "*")
-                        .header("Access-Control-Allow-Headers", "*")
-                        .header("Access-Control-Allow-Credentials", "false")
-                        .header("Access-Control-Max-Age", "3600")
-                        .header("Access-Control-Request-Method", "*")
-                        .header("Access-Control-Request-Headers", "origin, x-request-with")
-                    .build();
+                    return ResponseBuilderUtil.build(Response.Status.BAD_REQUEST, "ERROR: Unkwon operation type.");
             }
 
             return null;

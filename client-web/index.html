@@ -105,6 +105,7 @@
                 if(!response.ok) {
                     if(response.status == 400) {
                         const data = await response.text();
+                        document.getElementById("error-box").style.display = "none";
                         const errorBox = document.getElementById("general-error-box");
                         errorBox.innerText = data;
                         errorBox.style.display = "block";
