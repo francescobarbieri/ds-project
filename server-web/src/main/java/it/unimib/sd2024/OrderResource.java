@@ -51,10 +51,9 @@ public class OrderResource {
                 client.close();
             }
 
-            if(response == "") { //TODO: order not found (CREDO)
+            if("".equals(response.trim())) {
                 return ResponseBuilderUtil.build(Response.Status.CONFLICT);
             } else {
-
                 return ResponseBuilderUtil.buildOkResponse(response, MediaType.APPLICATION_JSON);
             }
         } catch (IOException e) {
@@ -72,7 +71,6 @@ public class OrderResource {
         try {
             JsonNode jsonNode = mapper.readTree(body);
 
-            //TODO: GENERAL FOR ALL VALUES IN ALL CLASS (orders, domains, users) ADD FORMAT AND TYPE CHECK
             //TODO: gestire concorrenza se due utenti stanno facendo la stessa operazione insieme
 
             String userId = getFieldValue(jsonNode, "userId");
@@ -88,7 +86,7 @@ public class OrderResource {
                 if (! domainValidator(domain)) throw new Exception("ERROR: Invalid domain.");
                 else if (userId == "" || userId == null) throw new Exception("ERROR: Missing userId in request body.");
                 else if (cvv.length() != 3) throw new Exception("ERROR: Invalid cvv");
-                else if (! carnNumberValidator(cardNumber)) throw new Exception("ERROR: Invalid card number. Use this for testing: 4532015112830366");
+                else if (! cardNumberValidator(cardNumber)) throw new Exception("ERROR: Invalid card number. Use this for testing: 4532015112830366");
             } catch (Exception e) {
                 e.printStackTrace();
                 return ResponseBuilderUtil.build(Response.Status.BAD_REQUEST, e.getMessage());
@@ -100,10 +98,7 @@ public class OrderResource {
             String expirationDate = Long.toString(System.currentTimeMillis() + (duration * millsInAYear));
 
             Client client = new Client("localhost", 3030);
-            String orderCommand;
-            String orderResponse;
-            String domainCommand;
-            String domainResponse; 
+            String orderCommand, orderResponse, domainCommand, domainResponse; 
 
             switch (operation) {
                 case "purchase":
@@ -119,13 +114,15 @@ public class OrderResource {
 
                     if("OK".equals(orderResponse.trim()) && "OK".equals(domainResponse.trim())) {
                         return ResponseBuilderUtil.buildOkResponse();
-                    } else if (domainResponse.trim().equals("ERROR: Domain")) { //TODO: che è sta roba?!
+                    } else if (domainResponse.trim().startsWith("ERROR:")) { //TODO: guardare che è sta roba
                         return ResponseBuilderUtil.build(Response.Status.CONFLICT, domainResponse);
                     }
 
                     break;
                 case "renewal":
                     //TODO: renewal (add max years logic)
+
+                    //TODO: if userId changed and domain is available I need to change it and reset the purchase date of the domain
 
                     // Get current expiry date
                     domainCommand = "DOMAIN GET " + domain;
@@ -190,7 +187,7 @@ public class OrderResource {
         return matcher.matches();
     }
 
-    private boolean carnNumberValidator(String card) {
+    private boolean cardNumberValidator(String card) {
         if(card == null || card.isEmpty()) return false;
 
         int sum = 0;

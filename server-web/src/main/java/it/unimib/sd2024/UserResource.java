@@ -40,6 +40,11 @@ public class UserResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUser(@PathParam("userId") String userId) {
+
+        if(userId == "" || userId == null) {
+            return ResponseBuilderUtil.build(Response.Status.BAD_REQUEST, "ERROR: Missing userId");
+        }
+
         try {
             Client client = new Client("localhost", 3030);
             String command = "USER GET " + userId;

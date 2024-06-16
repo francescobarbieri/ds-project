@@ -36,7 +36,6 @@ public class DomainsResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getDomains(@QueryParam("userId") String userId) {
-
         try {
             String response;
             if(userId == null || userId == "") {
@@ -51,7 +50,7 @@ public class DomainsResource {
                 client.close();
             }
 
-            if(response == "") { // TODO: handle error, sia qui che client side (ANCHE PER ORDERS)
+            if("".equals(response.trim())) { 
                 return ResponseBuilderUtil.build(Response.Status.NOT_FOUND);
             } else {
                 return ResponseBuilderUtil.buildOkResponse(response,  MediaType.APPLICATION_JSON);
