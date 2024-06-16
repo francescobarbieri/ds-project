@@ -32,8 +32,6 @@ public class UserHandler {
                 return set(parts);
             case "GET":
                 return get(parts);
-            case "DELETE":
-                return delete(parts);
             default:
                 return "ERROR: Unknown user command. \n";
         }
@@ -66,11 +64,6 @@ public class UserHandler {
         } else {
             return "NULL\n";
         }
-    }
-
-    private String delete(String[] parts) {
-        if (parts.length != 3) return "ERROR: DELETE command must be in the format: DELETE user <key>\n";
-        return "OK\n";
     }
 
     private void loadUsers() {

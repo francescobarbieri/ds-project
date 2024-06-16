@@ -1,95 +1,107 @@
-# Distributed System Project 2023-2024 - API REST
+## `/domains  
+  
+### GET  
+  
+**Description:** Returns all the domains available with their informations: domain name, userId that registered the domain, purchase date, expiration date. If a `userId` is provided as a query parameters, it returns only `userId`'s domains 
+  
+**Parameters:** 
+* `userId`: Optional. The unique identifier of the user.
+  
+**Reqeuest body:** Empty.  
+  
+**Response**: Returns a JSON array of domain JSON objects.
+  
+**Response Code:**  
+* `200`: Successful request
+* `404 Not Found`: No domains have been found
+* `500 Internal Server Error`
+  
 
-**Attenzione**: l'unica rappresentazione ammessa è in formato JSON. Pertanto vengono assunti gli header `Content-Type: application/json` e `Accept: application/json`.
+## `/domains/{domain}/availability`  
+  
+### GET  
+  
+**Description:** Returns if a domain name is available. 
+  
+**Parameters:**  
+* `domain`: Required. The domain name to check.
+  
+**Request body:** Empty.
+  
+**Response**: Returns a JSON if domain is available: {`domain` = `domainName`, `availability` = `true` | `false`}.  
+  
+**Codici di stato restituiti:**  
+* `400 Bad Request`: c'è un errore nel JSON fornito dal client (mancano dei dati o la sintassi è errata).
+* `404 Not Found`: l'id del film è inesistente. 
+* `500 Internal Server Error`
+  
+  
+## `/aggiungiPosto/{idProiezione}{posti}  
+  
+### POST  
+  
+**Descrizione:** crea una nuova prenotazione, restituendone l'URL.  
+  
+**Parametri:**  
+* idProiezione: numero intero identificatore di un film.  
+* posti: lista JSON di posti.  
+  
+**Body richiesta:** un oggetto JSON contenente l'`id` della proiezione e una lista `posti` di interi.  
+  
+**Risposta**: in caso di successo viene restituito un oggetto JSON avente un campo `motivation` contenente un messaggio di successo e un campo `location` che è l'URL
+creato per la prenotazione.  
+  
+**Codici di stato restituiti:**  
 
-## `/contacts`
-
-Ogni risorsa ha la sua sezione dedicata con i metodi ammessi. In questo caso si riferisce alla risorsa `/contacts`.
-
-### GET
-
-**Descrizione**: breve descrizione di cosa fa il metodo applicato alla risorsa. In questo caso restituisce l'elenco dei contatti presenti.
-
-**Parametri**: elenco dei parametri. In questo caso non sono previsti. Se la risorsa fosse stata `/contacts/{id}` allora andava specificato cosa deve essere `{id}`.
-
-**Header**: solo gli header importanti. In questo caso nessuno oltre a quelli già impostati automaticamente dal client. Si può evitare di specificare gli hader riguardanti la rappresentazione dei dati (JSON).
-
-**Body richiesta**: cosa ci deve essere nel body della richiesta (se previsto). In questo caso nulla perché non è previsto.
-
-**Risposta**: cosa viene restituito in caso di successo. In questo caso una lista con ogni elemento un contatto con i seguenti campi: `id` (intero), `name` (stringa) e `number` (stringa).
-
-**Codici di stato restituiti**: elenco dei codici di stato restituiti in caso di successo e di fallimento. In questo caso restituisce sempre `200 OK`. Viene dato per assunto che in caso di problemi lato server si restituisce `500 Internal Server Error`, non è necessario specificarlo ogni volta.
-
-### POST
-
-**Descrizione**: aggiunge un contatto alla rubrica telefonica.
-
-**Parametri**: nessuno.
-
-**Header**: nessuno.
-
-**Body richiesta**: singolo contatto con i campi `name` e `number`.
-
-**Risposta**: body vuoto e la risorsa creata è indicata nell'header `Location`.
-
-**Codici di stato restituiti**:
-
-* 201 Created: successo.
-* 400 Bad Request: c'è un errore del client (JSON, campo mancante o altro).
-
-## `/user/{id}`
-
-### GET
-
-**Description**: Returns user {id} data.
-
-**Parameters**: none.
-
-**Header**: none.
-
-**Body request**: none.
-
-**Parameters**: `{id}`: the user ID whose data you want to obtain.
-
-**Response**: A list with user data: `id` (int), `name` (string), `surname` (string) and `email` (string).
-
-**Status codes returned**: Success: `200 OK`; Error: `500 Internal Server Error`.
-
-## `/user/`
-
-### POST
-
-**Description**: adds a user to the system.
-
-**Parameters**: none.
-
-**Header**: none.
-
-**Body request**: a single user with the fields `name`, `surname` and `email`.
-
-**Response**: inside the body the system returns the `id` of the user just created.
-
-**Status codes returned**:
-
-* 201 Created: success.
-* 400 Bad Request: client errors (JSON, missing field).
-
-
-/user
-
-/user/{userId}
-
-/domain
-
-/domain/{userId}
-
-/domain/{domain}/availability GET
-
-/domain/{domain}/purchase POST con meccanismo di lock
-
-/domain/{domain}/renew POST con meccanismo di lock (?)
-
-/orders/
-
-/orders/{userId}
-
+* `400 Bad Request`: c'è un errore nel JSON fornito dal client (mancano dei dati o i parametri non sono corretti).
+* `404 Not Found`: il posto scelto non esiste nella sala.
+* `406 Not Acceptable` : qualche posto di quelli scelti sono già occupati oppure non ci sono abbastanza posti disponibili.
+* `409 Conflict`: il client ha fornito una lista di posti vuota.
+* `500 Internal Server Error`
+  
+  
+## `/aggiungiPosto/{idProiezione}{idPrenotazione}{posti}  
+  
+### PUT  
+  
+**Descrizione:**  aggiunge dei posti ad una prenotazione già esistente, rendendoli occupati.
+  
+**Parametri:**  
+* idProiezione: numero intero identificatore di un film.  
+* idPrenotazione: numero intero identificatore di una prenotazione.  
+* posti: lista JSON di posti.  
+  
+**Body richiesta:** un oggetto JSON contenente l'`id` della proiezione, l'`id` della prenotazione e una lista `posti` di interi.  
+  
+**Risposta**: se la richiesta ha avuto successo i posti dati vengono raggiunti alla prenotazione.  
+  
+**Codici di stato restituiti:**  
+* `400 Bad Request`: c'è un errore nel JSON fornito dal client (mancano dei dati o i parametri non sono corretti).
+* `404 Not Found`: il posto scelto non esiste nella sala.
+* `406 Not Acceptable`: qualche posto di quelli scelti sono già occupati oppure non ci sono abbastanza posti disponibili.
+* `409 Conflict`: il client ha fornito una lista di posti vuota.
+* `500 Internal Server Error`
+  
+  
+## `/rimuoviPosti/{idProiezione}{idPrenotazione}{posti}  
+  
+### DELETE  
+  
+**Descrizione:**  rimuove dei posti da una prenotazione, rendendoli di nuovo disponibili.
+  
+**Parametri:**  
+* idProiezione: numero intero identificatore di un film.  
+* idPrenotazione: numero intero identificatore di una prenotazione.  
+* posti: lista JSON di posti.  
+  
+**Body richiesta:** un oggetto JSON contenente l'`id` della proiezione, l'`id` della prenotazione e una lista `posti` di interi.  
+  
+**Risposta**: se la richiesta ha avuto successo, i posti vengono rimossi dalla prenotazione.  
+  
+**Codici di stato restituiti:**
+* `200 OK`: i posti sono stati rimossi dalla prenotazione con successo.
+* `400 Bad Request`: c'è un errore nel JSON fornito dal client (mancano dei dati o i parametri non sono corretti).
+* `404 Not Found`: il posto scelto non esiste nella sala.
+* `406 Not Acceptable`: qualche posto di quelli scelti sono già occupati oppure non ci sono abbastanza posti disponibili.
+* `406 Not Acceptable`: i posti selezionati non esistono oppure nella lista ci sono dei posti duplicati.
+* `500 Internal Server Error`

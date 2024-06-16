@@ -30,8 +30,6 @@ public class OrderHandler {
         switch (command) {
             case "SET":
                 return set(parts);
-            case "GET":
-                return get(parts);
             case "GETALL":
                 return getall(parts);
             default:
@@ -58,11 +56,6 @@ public class OrderHandler {
         orders.put(orders.size(), new Order(domain, userId, price, date, cvv, cardNumber, operationType, accountHolder));
         saveOrders();
         return "OK\n";
-    }
-
-    private String get (String[] parts) {
-        //TODO: finish this
-        return "Temp\n";
     }
 
     private String getall (String[] parts) {

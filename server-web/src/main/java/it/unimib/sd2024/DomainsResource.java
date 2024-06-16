@@ -51,7 +51,7 @@ public class DomainsResource {
                 client.close();
             }
 
-            if(response == "") { // TODO: handle error
+            if(response == "") { // TODO: handle error, sia qui che client side (ANCHE PER ORDERS)
                 return ResponseBuilderUtil.build(Response.Status.NOT_FOUND);
             } else {
                 return ResponseBuilderUtil.buildOkResponse(response,  MediaType.APPLICATION_JSON);

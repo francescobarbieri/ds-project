@@ -1,16 +1,64 @@
-# Progetto Sistemi Distribuiti 2023-2024 - TCP
+# TCP
 
-Documentare qui il protocollo su socket TCP che espone il database.
+## Syntax
 
-Come scritto anche nel documento di consegna del progetto, si ha completa libertà su come implementare il protoccolo e i comandi del database. Alcuni suggerimenti sono:
+This protocol follows a Redis-like syntax. In general, a command is composed of:
 
-1. Progettare un protocollo testuale (tipo HTTP), è più semplice da implementare anche se meno efficiente.
-2. Dare un'occhiata al protocollo di [Redis](https://redis.io/docs/reference/protocol-spec/). Si può prendere ispirazione anche solo in alcuni punti.
+&lt;`resource`&gt; &lt;`operation`&gt; &lt;`data`&gt;
 
-Di solito il protoccolo e i comandi del database sono due cose diverse. Tuttavia per il progetto, per evitare troppa complessità, si può documentare insieme il protocollo e i comandi implementati nel database.
+Every error message follows this format:
 
-La documentazione può variare molto in base al tipo di protocollo che si vuole costruire:
+`ERROR: `&lt;`error message`&gt;
 
-* Se è un protocollo testuale simile a quello di Redis, è necessario indicare il formato delle richieste e delle risposte, sia dei comandi sia dei dati.
+## Command list
 
-* Se è un protocollo binario, è necessario specificare bene il formato di ogni pacchetto per le richieste e per le risposte, come vengono codificati i comandi e i dati.
+### Domain Commands
+
+#### DOMAIN SET
+DOMAIN SET &lt;name&gt; &lt;userid&gt; &lt;currentdate&gt; &lt;expirationdate&gt;
+
+Sets a new domain with specified details.
+
+#### DOMAIN CHECK
+DOMAIN CHECK &lt;name&gt;
+
+Checks if a domain with the specified name exists.
+
+#### DOMAIN GET
+DOMAIN GET &lt;name&gt;
+
+Retrieves details of the domain with the specified name.
+
+#### DOMAIN GETALL
+DOMAIN GETALL [&lt;userid&gt;]
+
+Retrieves all domains optionally filtered by userid.
+
+#### DOMAIN UPDATE
+DOMAIN UPDATE &lt;name&gt; &lt;userid&gt; &lt;expirationdate&gt;
+
+Updates the expiration date of the domain with the specified name.
+
+### Order Commands
+
+#### ORDER SET
+ORDER SET &lt;domain&gt; &lt;userid&gt; &lt;price&gt; &lt;currentdate&gt; &lt;cvv&gt; &lt;cardnumber&gt; &lt;operationtype&gt; &lt;accountholder&gt;
+
+Places a new order with specified details.
+
+#### ORDER GETALL
+ORDER GETALL [&lt;userid&gt;]
+
+Retrieves all orders optionally filtered by userid.
+
+### User Commands
+
+#### ORDER GETALL
+USER SET &lt;email&gt; &lt;name&gt; &lt;surname&gt;
+
+Creates a new user with the specified email, name, and surname.
+
+#### ORDER GETALL
+USER GET &lt;userid&gt;
+
+Retrieves details of the user with the specified userid.
