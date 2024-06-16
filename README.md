@@ -1,13 +1,23 @@
-# Progetto Sistemi Distribuiti 2023-2024
+# Distributed System Project 2023/2024 - Domain Broker
 
-## Componenti del gruppo
+## Group components
 
 * Francesco Barbieri 856375 f.barbieri17@campus.unimib.it
 
-## Descrizione
+## Description
 
-Progetto di Sistemi Distribuiti.
+The project consists of the design and development of a distributed application for the purchase and management of Internet domains.
 
-![alt text](/images/1.png)
-![alt text](/images/2.png)
-![alt text](/images/3.png)
+Here you can find the full [specification pdf](/_utils/specifications.pdf).
+
+![homepage](/_utils/1.png)
+![buy domain page](/_utils/2.png)
+![domains list page](/_utils/3.png)
+
+## Compilation and Execution
+
+Using Visual Studio Code:
+
+* Client Web: VS Code live server
+* Server Web: Open a new terminal and run `mvn jetty:run`
+* Database: Open a new terminal and run `mvn compile` first, then `mvn exeec:java`
