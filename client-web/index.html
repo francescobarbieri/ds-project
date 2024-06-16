@@ -86,13 +86,17 @@
         </footer>
         <script src="script.js"></script>
         <script>
+            // This function is executed when the window has finished loading
             window.onload = function () {
+                // Add an event listener for the 'submit' event 
                 const mainForm = document.getElementById('main-form');
                 if (mainForm)
                     mainForm.addEventListener('submit', reserveDomain);
             };
 
+            // Asynchronous function to handle the domain reservation
             async function reserveDomain(event) {
+                // Prevent the default form submission behavior
                 event.preventDefault();
 
                 const form = document.getElementById("main-form");
@@ -101,23 +105,29 @@
 
                 const endpoint = `${API_URI}/domains/${domain}/availability`;
 
+                // Send a GET request to the endpoint and await the response
                 const response = await fetch(endpoint);
+                // If the response is not OK
                 if(!response.ok) {
+                    // If the response status is 400 (Bad Request)
                     if(response.status == 400) {
                         const data = await response.text();
                         document.getElementById("error-box").style.display = "none";
                         const errorBox = document.getElementById("general-error-box");
+                        // Set the inner text of the error box to the response text
                         errorBox.innerText = data;
                         errorBox.style.display = "block";
-
                         return;
                     }
+                    // If the response status is 409 (Conflict)
                     else if(response.status == 409) {
                         const data = await response.json();
                         
+                        // Updates UI
                         document.getElementById("general-error-box").style.display = "none";
                         const errorBox = document.getElementById("error-box");
 
+                        // Update the error box with the details from the response
                         errorBox.querySelector(".name").innerHTML = data.name;
                         errorBox.querySelector(".surname").innerHTML = data.surname;
                         errorBox.querySelector(".email").innerHTML = data.email;
@@ -126,10 +136,13 @@
                         errorBox.style.display = "block";
                         return;
                     } else {
+                        // For other response statuses, throw a generic error
                         throw new Error(`Generic error. ${response.status} ${response.statusText}`);
                     }
                 } else {
+                    // If the response is OK, parse the response as JSON
                     const data = await response.json();
+                    // Redirect the user to the 'buy.html' page with the domain as a query parameter
                     window.location.href = `buy.html?domain=${data.domain}`;
                 }
             }
