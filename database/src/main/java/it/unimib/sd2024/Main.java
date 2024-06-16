@@ -12,36 +12,52 @@ import java.nio.*;
 import java.nio.channels.*;
 
 /**
- * Classe principale in cui parte il database.
- */
+ * Main class that starts the database server.
+*/
 public class Main {
-    private Selector selector;
+    private Selector selector; // Selector for managing multiple channels
     
-    private InetSocketAddress listenAddress;
-    public static final int PORT = 3030;
+    private InetSocketAddress listenAddress; // Address to listen on
+    public static final int PORT = 3030; // Default port number
 
+    // Handlers for different types of requests
     private final UserHandler userHandler = new UserHandler();
     private final DomainHandler domainHandler = new DomainHandler();
     private final OrderHandler orderHandler = new OrderHandler();
 
+    /**
+     * Constructor to initialize the server with a specific address and port.
+     *
+     * @param address the address to bind the server to
+     * @param port the port to bind the server to
+     * @throws IOException if an I/O error occurs
+     */
     public Main(String address, int port) throws IOException {
         listenAddress = new InetSocketAddress(address, port);
     }
 
+    /**
+     * Starts the server to listen for incoming connections and handle them.
+     *
+     * @throws IOException if an I/O error occurs
+     */
     public void startServer() throws IOException {
-        this.selector = Selector.open();
-        ServerSocketChannel serverChannel = ServerSocketChannel.open();
-        serverChannel.configureBlocking(false);
-        serverChannel.socket().bind(listenAddress);
-        serverChannel.register(this.selector, SelectionKey.OP_ACCEPT);
+        this.selector = Selector.open(); // Open a selector
+        ServerSocketChannel serverChannel = ServerSocketChannel.open(); // Open a server socket channel
+        serverChannel.configureBlocking(false); // Configure it to be non-blocking
+        serverChannel.socket().bind(listenAddress); // Bind the server socket to the specified address
+        serverChannel.register(this.selector, SelectionKey.OP_ACCEPT); // Register the server socket with the selector for accept operation
 
         System.out.println("Database started on port: " + PORT);
 
-
+        // Main loop to handle incoming connections and data
         while (true) {
-            selector.select();
+            // Wait for events
+            selector.select();  
+            // Get the keys for which events occurred
             Iterator<SelectionKey> keys = selector.selectedKeys().iterator();
 
+            // Iterate over the keys
             while(keys.hasNext()) {
                 SelectionKey key = keys.next();
                 keys.remove();
@@ -49,42 +65,55 @@ public class Main {
                 if(!key.isValid()) continue;
 
                 if(key.isAcceptable()) {
-                    accept(key);
+                    accept(key); // Handle accept event
                 } else if (key.isReadable()) {
-                    read(key);
+                    read(key); // Handle read event
                 }
             }
         }
     }
-
+    
+    /**
+     * Accepts a new connection and registers it with the selector.
+     *
+     * @param key the selection key
+     * @throws IOException if an I/O error occurs
+     */
     private void accept(SelectionKey key) throws IOException {
-        ServerSocketChannel serverChannel = (ServerSocketChannel) key.channel();
-        SocketChannel socketChannel = serverChannel.accept();
-        socketChannel.configureBlocking(false);
-        socketChannel.register(this.selector, SelectionKey.OP_READ);
+        ServerSocketChannel serverChannel = (ServerSocketChannel) key.channel(); // Get the server channel
+        SocketChannel socketChannel = serverChannel.accept(); // Accept the new connection
+        socketChannel.configureBlocking(false); // Configure it to be non-blocking
+        socketChannel.register(this.selector, SelectionKey.OP_READ);  // Register it with the selector for read operations
         System.out.println("Connection accepted: " + socketChannel.getLocalAddress());
     }
 
+    /**
+     * Reads data from a connected client.
+     *
+     * @param key the selection key
+     * @throws IOException if an I/O error occurs
+     */
     private void read(SelectionKey key) throws IOException {
-        SocketChannel socketChannel = (SocketChannel) key.channel();
-        ByteBuffer buffer = ByteBuffer.allocate(256);
+        SocketChannel socketChannel = (SocketChannel) key.channel(); // Get the socket channel
+        ByteBuffer buffer = ByteBuffer.allocate(256); // Allocate a buffer for reading data
         int numRead = -1;
 
         try {
-            numRead = socketChannel.read(buffer);
+            numRead = socketChannel.read(buffer); // Read data into the buffer
         } catch (IOException e) {
             System.out.println("Error reading data: " + e);
         }
 
         if(numRead == -1) {
-            this.closeConnection(key);
-            return;
+            this.closeConnection(key); // Close the connection if no data was read (end of stream)
+            return; 
         }
 
+        // Process the received data
         String receivedString = new String(buffer.array()).trim();
         System.out.println("Received: " + receivedString);
 
-        String response = handleCommand(receivedString);
+        String response = handleCommand(receivedString); // Handle the received command
         byte[] responseBytes = response.getBytes();
         int responseLength = responseBytes.length;
         int offset = 0;
@@ -96,17 +125,24 @@ public class Main {
             buffer.put(responseBytes, offset, bytesToWrite);
             buffer.flip();
             while (buffer.hasRemaining()) {
-                socketChannel.write(buffer);
+                socketChannel.write(buffer); // Write data to the client
             }
             offset += bytesToWrite;
         }
     }
 
+    /**
+     * Handles a command received from a client.
+     *
+     * @param command the command string
+     * @return the response string
+     */
     private String handleCommand(String command) {
         String[] parts = command.split(" ");
-        if(parts.length < 2) return "ERROR: invalid command. \n";
+        if(parts.length < 2) return "ERROR: invalid command. \n"; // Check if the command is valid
         String resource = parts[0].toUpperCase();
 
+        // Handle the command based on the resource type
         switch (resource) {
             case "USER":
                 return userHandler.handle(parts);
@@ -121,23 +157,28 @@ public class Main {
         }
     }
 
+    /**
+     * Closes the connection associated with the given key.
+     *
+     * @param key the selection key
+     * @throws IOException if an I/O error occurs
+     */
     private void closeConnection(SelectionKey key) throws IOException {
-        SocketChannel socketChannel = (SocketChannel) key.channel();
-        socketChannel.close();
-        key.cancel();
+        SocketChannel socketChannel = (SocketChannel) key.channel(); // Get the socket channel
+        socketChannel.close();  // Close the channel
+        key.cancel(); // Cancel the key
         System.out.println("Connection closed");
     }
 
     /**
-     * Metodo principale di avvio del database.
+     * Main method to start the database server.
      *
-     * @param args argomenti passati a riga di comando.
-     *
-     * @throws IOException
+     * @param args command line arguments
+     * @throws IOException if an I/O error occurs
      */
     public static void main(String[] args) throws IOException {
         try {
-            new Main("localhost", PORT).startServer();
+            new Main("localhost", PORT).startServer(); // Create and start the server
         } catch (IOException e) {
             e.printStackTrace();
         }
