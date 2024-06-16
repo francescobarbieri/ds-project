@@ -63,8 +63,9 @@
     </footer>
     <script src="script.js"></script>
     <script>
-
+        // This function is executed when the window has finished loading
         window.onload = function() {
+            // If 'userId' is stored in localStorage show error message and hide page content
             if (localStorage.getItem("userId") != null) {
                 document.getElementById("main-content").style.display = "none";
                 const errorBox = document.getElementById("error-box");
@@ -72,12 +73,15 @@
                 errorBox.style.display = "block";
             }
 
+            // Add an event listener to the form to handle the 'submit' event
             document.getElementById("register-form").addEventListener("submit", async ( event ) => {
+                // Prevent the default form submission behavior
                 event.preventDefault();
 
                 const form = document.getElementById("register-form");
                 const formData = new FormData(form);
 
+                // Create a data object containing the form values
                 const data = {
                     name: formData.get("name"),
                     surname: formData.get("surname"),
@@ -86,6 +90,7 @@
 
                 const endpoint = `${API_URI}/user`;
 
+                // Send a POST request to the endpoint with the form data in JSON format
                 const response = await fetch(endpoint, {
                     method: "POST",
                     headers: {
@@ -94,24 +99,30 @@
                     body: JSON.stringify(data),
                 });
 
+                // If the response is OK
                 if(response.ok) {
                     const responseData = await response.json();
                     const userId = responseData.id;
 
+                    // Store the user ID in localStorage
                     localStorage.setItem("userId", userId);
                     document.getElementById("userId").value = userId;
 
+                    // Update the UI
                     document.getElementById("main-content").style.display = "none";
                     const successBox = document.getElementById("success-box");
                     successBox.querySelector("span").innerText = userId;
                     successBox.style.display = "block";
-                } 
+                }
+                // If the response status is 409 (Conflict)
                 else if(response.status == 409) {
+                    // Update UI and show error box
                     document.getElementById("main-content").style.display = "none";
                     const errorBox = document.getElementById("error-box");
                     errorBox.innerText = "This email is already registered.";
                     errorBox.style.display = "block";
                 } else {
+                    // Update UI and show error box for other response statuses
                     const data = await response.text();
                     document.getElementById("main-content").style.display = "none";
                     const errorBox = document.getElementById("error-box");
