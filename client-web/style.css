@@ -155,10 +155,30 @@ footer {
     border-radius: 6px;
     background-color: var(--light-gray);
     margin-bottom: 2rem;
+    position: relative;
 }
 
 .domain-name {
     font-size: 1.2rem;
     font-weight: 500;
     margin-bottom: 0.7rem;
+}
+
+.renew-button {
+    padding-left: 1rem;
+    padding-right: 1rem;
+    background-color: #2d2d2d;
+    position: absolute;
+    right: 1rem;
+    height: calc(100% - 2rem);
+    cursor: pointer;
+    color: white;
+    border-radius: 4px;
+    font-size: 1.1rem;
+    align-content: center;
+    text-decoration: none;
+}
+
+.renew-button:hover {
+    background-color: #000;
 }

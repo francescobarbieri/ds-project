@@ -11,6 +11,7 @@ public class Order {
     private String cvv;
     private String cardNumber;
     private String operationType;
+    private String accountHolder;
 
 
     public enum OperationType {
@@ -19,7 +20,7 @@ public class Order {
     
     public Order () { }
 
-    public Order(String domain, String userId, String price, long date, String cvv, String cardNumber, String operationType) {
+    public Order(String domain, String userId, String price, long date, String cvv, String cardNumber, String operationType, String accountHolder) {
         this.domain = domain;
         this.userId = userId;
         this.price = price; 
@@ -27,6 +28,7 @@ public class Order {
         this.cvv = cvv;
         this.cardNumber = cardNumber;
         this.operationType = operationType;
+        this.accountHolder = accountHolder;
     }
 
     public String getDomain() {
@@ -83,6 +85,14 @@ public class Order {
 
     public void setOperationType(String operationType) {
         this.operationType = operationType;
+    }
+
+    public String getAccountHolder() {
+        return accountHolder;
+    }
+
+    public void setAccountHolder(String accountHolder) {
+        this.accountHolder = accountHolder;
     }
 
     public String toJSON() {

@@ -37,10 +37,10 @@
             <div class="wrapper">
                 <div class="header">
                     <h1 id="domain-name">Budjetdomains</h1>
-                    <p>Complete the purchase</p>
+                    <p id="infobox">Complete the purchase</p>
                 </div>
                 <div id="main-content">
-                    <div class="success-box">This domain is available!</div>
+                    <div class="success-box" id="welcome-success-box">This domain is available!</div>
                     <div class="buy-box">
                         <h3>You can proceed</h3>
                         <form id="buy-form" action="" method="post">
@@ -131,6 +131,20 @@
                 const durationElement = document.getElementById("duration");
                 duration.addEventListener("change", updatePrice);
 
+                const params = new Proxy(new URLSearchParams(window.location.search), {
+                    get: (searchParams, prop) => searchParams.get(prop),
+                });
+
+                let operation = params.operation;
+
+                if(operation == null) {
+                    operation = "purchase";
+                } else {
+                    document.getElementById("welcome-success-box").style.display = "none";
+                    document.getElementById("infobox").innerText = "Complete the renewal";
+                    //TODO: cambiare i tesi nella pagina per far si che sembri un rinnovo
+                    operation = "renewal";
+                }
 
                 async function buyDomain(event) {
                     event.preventDefault();
@@ -144,18 +158,6 @@
 
                     const form = document.getElementById("buy-form");
                     const formData = new FormData(form);
-
-                    const params = new Proxy(new URLSearchParams(window.location.search), {
-                        get: (searchParams, prop) => searchParams.get(prop),
-                    });
-
-                    let operation = params.operation;
-
-                    if(operation == null) {
-                        operation = "purchase";
-                    } else {
-                        operation = "renewal";
-                    }
 
                     //TODO: unbind price
                     const data = {

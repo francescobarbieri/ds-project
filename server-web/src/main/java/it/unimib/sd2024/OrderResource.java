@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import javax.sound.midi.SysexMessage;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -42,6 +44,7 @@ public class OrderResource {
     static { }
 
     @OPTIONS
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response avoidCORSBlocking() {
         return Response.ok()
@@ -59,7 +62,57 @@ public class OrderResource {
      *  Implementazione di GET "/orders".
      */
 
-     //TODO: do this
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getOrder(@QueryParam("userId") String userId) {
+        try {
+            String response;
+            if(userId == null || userId == "") {
+                Client client = new Client("localhost", 3030);
+                String command = "ORDER GETALL";
+                response = client.sendCommand(command);
+                client.close();
+            } else {
+                Client client = new Client("localhost", 3030);
+                String command = "ORDER GETALL " + userId;
+                response = client.sendCommand(command);
+                client.close();
+            }
+
+            if(response == "") { // TODO: handle error
+                return Response.status(Response.Status.NOT_FOUND)
+                    .header("Access-Control-Allow-Origin", "*")
+                    .header("Access-Control-Allow-Methods", "*")
+                    .header("Access-Control-Allow-Headers", "*")
+                    .header("Access-Control-Allow-Credentials", "false")
+                    .header("Access-Control-Max-Age", "3600")
+                    .header("Access-Control-Request-Method", "*")
+                    .header("Access-Control-Request-Headers", "origin, x-request-with")
+                .build();
+            } else {
+                return Response.ok(response, MediaType.APPLICATION_JSON)
+                    .header("Access-Control-Allow-Origin", "*")
+                    .header("Access-Control-Allow-Methods", "*")
+                    .header("Access-Control-Allow-Headers", "*")
+                    .header("Access-Control-Allow-Credentials", "false")
+                    .header("Access-Control-Max-Age", "3600")
+                    .header("Access-Control-Request-Method", "*")
+                    .header("Access-Control-Request-Headers", "origin, x-request-with")
+                .build();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .header("Access-Control-Allow-Origin", "*")
+                .header("Access-Control-Allow-Methods", "*")
+                .header("Access-Control-Allow-Headers", "*")
+                .header("Access-Control-Allow-Credentials", "false")
+                .header("Access-Control-Max-Age", "3600")
+                .header("Access-Control-Request-Method", "*")
+                .header("Access-Control-Request-Headers", "origin, x-request-with")
+            .build();
+        }
+    }
 
     /**
     * Implementation of POST "/orders".
@@ -77,6 +130,7 @@ public class OrderResource {
             int duration = jsonNode.get("duration").asInt();
             String price = getFieldValue(jsonNode, "price");
             String domain = getFieldValue(jsonNode, "domain");
+            //TODO: add accountholder to socket data
             String accountHolder = getFieldValue(jsonNode, "accountHolder");
             String cardNumber = getFieldValue(jsonNode, "cardNumber");
             String cvv = getFieldValue(jsonNode, "cvv");
@@ -87,16 +141,21 @@ public class OrderResource {
             long millsInAYear = TimeUnit.DAYS.toMillis(365);
             String expirationDate = Long.toString(System.currentTimeMillis() + (duration * millsInAYear));
 
+            Client client = new Client("localhost", 3030);
+            String orderCommand;
+            String orderResponse;
+            String domainCommand;
+            String domainResponse; 
+
             switch (operation) {
                 case "purchase":
                     // add order record
-                    Client client = new Client("localhost", 3030);
-                    String orderCommand = String.format("ORDER SET %s %s %s %s %s %s %s", domain, userId, price, operationDate, cvv, cardNumber, operation);
-                    String orderResponse = client.sendCommand(orderCommand);            
+                    orderCommand = String.format("ORDER SET %s %s %s %s %s %s %s %s", domain, userId, price, operationDate, cvv, cardNumber, operation, accountHolder);
+                    orderResponse = client.sendCommand(orderCommand);            
 
                     // add domain record
-                    String domainCommand = String.format("DOMAIN SET %s %s %s %s", domain, userId, operationDate, operationDate, expirationDate);
-                    String domainResponse = client.sendCommand(domainCommand);
+                    domainCommand = String.format("DOMAIN SET %s %s %s %s", domain, userId, operationDate, operationDate, expirationDate);
+                    domainResponse = client.sendCommand(domainCommand);
 
                     client.close();
 
@@ -117,8 +176,58 @@ public class OrderResource {
                     break;
                 case "renewal":
                     //TODO: renewal (add years logic)
-                    // serve credo un metodo "update" per il dominio
-                    break;
+
+                    //TODO: controllare che il dominio appartenga all'utente
+                    // prendre la data di scadenza attuale
+                    domainCommand = "DOMAIN GET " + domain;
+                    domainResponse = client.sendCommand(domainCommand);
+
+                    JsonNode jsonNodeDomain = mapper.readTree(domainResponse);
+                    String userIdDomain = getFieldValue(jsonNodeDomain, "userId");
+                    long exiprationDomain = jsonNodeDomain.get("expiryDate").asLong();
+                    
+                    System.out.println(userId);
+                    System.out.println(userIdDomain);
+
+                    // Check if domain is actually a userId's domain
+                    if(userId != userId) {
+                        System.out.println("Qui non ci dovrei entrare");
+                        client.close();
+                        return Response.status(Response.Status.FORBIDDEN).entity("You don't have access to this operation")
+                            .header("Access-Control-Allow-Origin", "*")
+                            .header("Access-Control-Allow-Methods", "*")
+                            .header("Access-Control-Allow-Headers", "*")
+                            .header("Access-Control-Allow-Credentials", "false")
+                            .header("Access-Control-Max-Age", "3600")
+                            .header("Access-Control-Request-Method", "*")
+                            .header("Access-Control-Request-Headers", "origin, x-request-with")
+                        .build();
+                    } else {
+                        // update expiration date
+                        String newExpiration = Long.toString(exiprationDomain + (duration * millsInAYear));
+                        
+                        // update domain
+                        domainCommand = "DOMAIN UPDATE " + domain + " " + newExpiration;
+                        domainResponse = client.sendCommand(domainCommand);
+
+                        // add order record
+                        orderCommand = String.format("ORDER SET %s %s %s %s %s %s %s %s", domain, userId, price, operationDate, cvv, cardNumber, operation, accountHolder);
+                        orderResponse = client.sendCommand(orderCommand);
+
+                        client.close();
+
+                        if("OK".equals(domainResponse.trim()) && "OK".equals(orderResponse.trim())) {
+                            return Response.ok()
+                                .header("Access-Control-Allow-Origin", "*")
+                                .header("Access-Control-Allow-Methods", "*")
+                                .header("Access-Control-Allow-Headers", "*")
+                                .header("Access-Control-Allow-Credentials", "false")
+                                .header("Access-Control-Max-Age", "3600")
+                                .header("Access-Control-Request-Method", "*")
+                                .header("Access-Control-Request-Headers", "origin, x-request-with")
+                            .build();
+                        }
+                    }
                 default:
                     return Response.status(Response.Status.BAD_REQUEST)
                         .header("Access-Control-Allow-Origin", "*")

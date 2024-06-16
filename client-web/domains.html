@@ -34,7 +34,7 @@
       <div class="wrapper">
         <div class="header">
           <h1>Domain list</h1>
-          <p>List of our domains</p>
+          <p id="infobox">List of our domains</p>
         </div>
         <div id="domain-container">
         </div>
@@ -54,6 +54,7 @@
         async function init() {
             let endpoint = `${API_URI}/domains`
             if(localStorage.getItem("userId") != null) {
+                document.getElementById("infobox").innerHTML = "List of your domains";
                 endpoint += "?userId=" + localStorage.getItem("userId");
             }
 
@@ -68,10 +69,19 @@
                     const domainBox = document.createElement("div");
                     domainBox.classList.add("domain-box");
 
+                    // If user is logged see renew button
+                    if(localStorage.getItem("userId") != null) {
+                        const renewbutton = document.createElement('a');
+                        renewbutton.innerText = "Renew"
+                        renewbutton.classList.add('renew-button');
+                        renewbutton.setAttribute("href", `/buy.html?domain=${item.domainName}&operation=renewal`)
+                        domainBox.appendChild(renewbutton)
+                    }
+
                     // Create and append the domain-name element
                     const domainName = document.createElement('div');
                     domainName.classList.add('domain-name');
-                    domainName.textContent = item.domainName; // Replace 'item.domain' with your actual data property
+                    domainName.textContent = item.domainName;
                     domainBox.appendChild(domainName);
 
                     // Create and append the registered-at element

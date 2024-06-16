@@ -79,7 +79,7 @@ public class DomainsResource {
             }
 
 
-            if(response == "") { // TODO: error
+            if(response == "") { // TODO: handle error
                 return Response.status(Response.Status.NOT_FOUND)
                     .header("Access-Control-Allow-Origin", "*")
                     .header("Access-Control-Allow-Methods", "*")

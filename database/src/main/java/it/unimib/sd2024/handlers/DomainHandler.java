@@ -36,6 +36,8 @@ public class DomainHandler {
                 return get(parts);
             case "GETALL":
                 return getall(parts);
+            case "UPDATE":
+                return update(parts);
             default:
                 return "ERROR: Unknown command. \n";
         }
@@ -100,7 +102,7 @@ public class DomainHandler {
                 List<Domain> domainList = new ArrayList<>(domains.values());
                 return objectMapper.writeValueAsString(domainList) + "\n";
             }
-            // Returns only userId domains
+            // Returns only userId's domains
             else if (parts.length == 3) {
                 String userId = parts[2];
 
@@ -116,6 +118,22 @@ public class DomainHandler {
             e.printStackTrace();
         }
         return "Unknown error\n";
+    }
+
+    private String update(String[] parts) {
+        if(parts.length != 4) return "ERROR: UPDATE command must be in the format: DOMAIN UPDATE <domainname> <expirydate> \n";
+        String name = parts[2];
+        long expiryDate = Long.parseLong(parts[3]);
+
+        Domain domain = domains.get(name);
+
+        if(domain == null) {
+            return "ERROR: Domain " + name + "doesn't exists\n";
+        } else {
+            domains.put(name, new Domain(name, domain.getUserId(), expiryDate, domain.getPurchaseDate(), false));
+            saveDomains();
+            return "OK\n";
+        }
     }
 
     private void loadDomains() {
