@@ -45,7 +45,7 @@
                         <h3>You can proceed</h3>
                         <form id="buy-form" action="" method="post">
                             <div class="input-wrapper">
-                                <label>Number of years reserved</label>
+                                <label id="years-label">Number of years reserved</label>
                                 <input
                                     type="number"
                                     placeholder="Number of years"
@@ -111,44 +111,56 @@
         <script>
             const urlParams = new URLSearchParams(window.location.search);
 
+            // Initialize the script when the window is loaded
             window.onload = init();
+
+            // Define the initialization function
             async function init() {
 
+                // Check if userId is stored in localStorage and auto-complete user data if it is
                 if(localStorage.getItem("userId") != null) {
                     await autoCompleteUserData();
                 }
 
+                // Retrieve the 'domain' parameter from the URL and set it to the corresponding DOM element
                 const domain = urlParams.get("domain");
                 document.getElementById("domain-name").innerText = domain;
 
+                // Get the form element and add a submit event listener to trigger the buyDomain function
                 const form = document.getElementById("buy-form");
                 form.addEventListener("submit", buyDomain);
 
-                // Update price on page load
+                // Update the price
                 updatePrice();
 
-                // Evaluate price accordingly to years selected
+                // Add an event listener to the duration input to update the price when the duration changes
                 const durationElement = document.getElementById("duration");
                 duration.addEventListener("change", updatePrice);
 
+                // Get URL parameters using Proxy
                 const params = new Proxy(new URLSearchParams(window.location.search), {
                     get: (searchParams, prop) => searchParams.get(prop),
                 });
-
+                
+                // Determine the operation type based on URL parameters, default to 'purchase'
                 let operation = params.operation;
 
                 if(operation == null) {
                     operation = "purchase";
                 } else {
+                    // If the operation is not null, it is a renewal, update the UI accordingly
                     document.getElementById("welcome-success-box").style.display = "none";
                     document.getElementById("infobox").innerText = "Complete the renewal";
-                    //TODO: cambiare i tesi nella pagina per far si che sembri un rinnovo
+                    document.getElementById("years-label").innerText = "Select the number of years to renew your subscription (up to a maximum of 10 cumulative years).";
                     operation = "renewal";
                 }
 
+                // Define the function to handle the form submission
                 async function buyDomain(event) {
+                    // Prevent the default form submission behavior
                     event.preventDefault();
 
+                    // Check if userId is stored in localStorage, show error message if not
                     if(!localStorage.getItem("userId")) {
                         const errorBox = document.getElementById("error-box");
                         errorBox.innerText = "You need to insert a valid user ID in the navbar to proceed.";
@@ -156,12 +168,11 @@
                         return;
                     }
 
+                    // Get form data
                     const form = document.getElementById("buy-form");
                     const formData = new FormData(form);
 
-                    console.log(document.getElementById("price").value);
-
-                    //TODO: unbind price
+                    // Prepare the data to be sent to the server
                     const data = {
                         userId: localStorage.getItem("userId"),
                         duration: formData.get("duration"),
@@ -173,8 +184,10 @@
                         operation: operation,
                     }
                     
+                    // Define the endpoint for the API request
                     const endpoint = `${API_URI}/orders`;
                     
+                    // Send the data to the server using a POST request
                     const response = await fetch(endpoint, {
                         method: "POST",
                         headers: {
@@ -190,19 +203,24 @@
                     });
                     
                     // TODO: handle if another user is trying to buy simultaneously
+                    // Handle the server response
                     if (!response.ok) {
+                        // If the response is not ok, show an error message
                         const errorMessage = await response.text();
                         document.getElementById("main-content").style.display = "none";
                         const errorBox = document.getElementById("error-box");
                         errorBox.innerText = errorMessage;
                         errorBox.style.display = "block";
                     } else {
+                        // If the response is ok, show the success message
                         document.getElementById("main-content").style.display = "none";
                         document.getElementById("success-box").style.display = "block";
                     }
                 }
 
+                // Define the function to update the price based on the selected duration
                 function updatePrice() {
+                    // Define the price per year
                     const pricePerYear = 10;
                     
                     const priceElement = document.getElementById("price");
@@ -214,12 +232,13 @@
                     priceElement.setAttribute("value", `${price}`);
                 }
 
+                // Define the function to auto-complete user data if userId is available in localStorage
                 async function autoCompleteUserData() {
                     const endpoint = `${API_URI}/user/` + localStorage.getItem("userId");
                     const response = await fetch(endpoint)
                     
                     if(response.ok) {
-                        const data = await response.json();
+                        const data = await response.json(); // Parse the response data
                         document.getElementById("name").value = data.name;
                         document.getElementById("surname").value = data.surname;
                         document.getElementById("email").value = data.email;
