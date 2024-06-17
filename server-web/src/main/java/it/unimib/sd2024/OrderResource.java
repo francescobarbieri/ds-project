@@ -56,7 +56,7 @@ public class OrderResource {
             }
 
             if("".equals(response.trim())) {
-                return ResponseBuilderUtil.build(Response.Status.NOT_FOUND); //TODO: add client this error handling (anche per ORDERS)
+                return ResponseBuilderUtil.build(Response.Status.NOT_FOUND);
             } else {
                 return ResponseBuilderUtil.buildOkResponse(response, MediaType.APPLICATION_JSON);
             }

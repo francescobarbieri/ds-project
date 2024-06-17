@@ -38,6 +38,7 @@
         </div>
         <div id="orders-container">
         </div>
+        <div class="error-box" id="error-box"></div>
       </div>
     </div>
 
@@ -94,6 +95,14 @@
                     // Append the order-box element to the order-container
                     orderContainer.appendChild(orderBox);
                 });
+            } else if (response.status == 404) {
+                const errorBox = document.getElementById("error-box");
+                errorBox.innerText = "No order found";
+                errorBox.style.display = "block";
+            } else {
+                const errorBox = document.getElementById("error-box");
+                errorBox.innerText = "Unknown error";
+                errorBox.style.display = "block";
             }
         }
     </script>

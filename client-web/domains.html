@@ -38,6 +38,7 @@
         </div>
         <div id="domain-container">
         </div>
+        <div class="error-box" id="error-box"></div>
       </div>
     </div>
 
@@ -98,10 +99,18 @@
 
                     // Append the domain-box element to the domain-container
                     domainContainer.appendChild(domainBox);
-                });
+                })
+            }
+            else if (response.status == 404) {
+                const errorBox = document.getElementById("error-box");
+                errorBox.innerText = "No domains found";
+                errorBox.style.display = "block";
+            } else {
+                const errorBox = document.getElementById("error-box");
+                errorBox.innerText = "Unknown error";
+                errorBox.style.display = "block";
             }
         }
-
     </script>
   </body>
 </html>
