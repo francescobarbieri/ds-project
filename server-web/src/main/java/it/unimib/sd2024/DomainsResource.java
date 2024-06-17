@@ -19,7 +19,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 /**
- * Represents the "domain" resource in "http://localhost:8080/domains".
+ * Represents the "domains" resource in "http://localhost:8080/domains".
  */
 @Path("domains")
 public class DomainsResource {
@@ -31,7 +31,7 @@ public class DomainsResource {
     }
 
     /**
-     * Implementazione di GET "/domains".
+     * Implementation of GET "/domains".
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -62,7 +62,7 @@ public class DomainsResource {
     }
 
     /**
-     * Implementazione di GET "/domains/{domain}/availability".
+     * Implementation of GET "/domains/{domain}/availability".
      */
     @Path("/{domain}/availability")
     @GET
@@ -79,27 +79,21 @@ public class DomainsResource {
             String response = client.sendCommand(command);
 
             if("OK".equals(response.trim())) {
-                StringBuilder jsonString = new StringBuilder();
-                jsonString.append("{\"domain\": \"" + domain + "\",");
-                jsonString.append("\"availability\": true }");
-        
-                String jsonResponse = jsonString.toString(); 
-
                 client.close();
-
-                return ResponseBuilderUtil.buildOkResponse(jsonResponse, MediaType.APPLICATION_JSON);
-            } else {
-                // Domain not available
-                // Get domain infos
+                return ResponseBuilderUtil.buildOkResponse();
+            }
+            // If domain is not available
+            else {
+                // Get domain informations
                 command = "DOMAIN GET " + domain;
                 response = client.sendCommand(command);
 
-                // Extract propietary userId and expiration date from json
+                // Extract domain owner userId and expiration date from json
                 JsonNode jsonNodeDomain = mapper.readTree(response);
                 String userId = getFieldValue(jsonNodeDomain, "userId");
                 String expiryDate = getFieldValue(jsonNodeDomain, "expiryDate");
 
-                // Get userId infos
+                // Get userId informations
                 command = "USER GET " + userId;
                 response = client.sendCommand(command);
 
@@ -111,7 +105,7 @@ public class DomainsResource {
 
                 client.close();
 
-                // Compose response JSON
+                // Build response JSON
                 StringBuilder jsonString = new StringBuilder();
                 jsonString.append("{\"name\": \"" + name + "\",");
                 jsonString.append("\"surname\": \"" + surname + "\",");
@@ -128,6 +122,7 @@ public class DomainsResource {
         }
     }
 
+    // Helper to get field value from JSON
     private String getFieldValue(JsonNode jsonNode, String fieldName) {
         JsonNode fieldNode = jsonNode.get(fieldName);
         if(fieldName == null) {
@@ -136,6 +131,7 @@ public class DomainsResource {
         return fieldNode != null ? fieldNode.asText() : null;
     }
 
+    // Domain validation using regex
     private boolean domainValidator(String domain) {
         String DOMAIN_NAME_WITH_TLD_REGEX = "^((?!-)[A-Za-z0-9-]{1,63}(?<!-)\\.)+[A-Za-z]{2,6}$";
         Pattern DOMAIN_NAME_WITH_TLD_PATTERN = Pattern.compile(DOMAIN_NAME_WITH_TLD_REGEX);

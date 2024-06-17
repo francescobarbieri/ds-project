@@ -1,6 +1,7 @@
 package it.unimib.sd2024;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -20,6 +21,9 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
+/**
+ * Represents the "orders" resource in "http://localhost:8080/orders".
+ */
 @Path("orders")
 public class OrderResource {
     ObjectMapper mapper = new ObjectMapper();
@@ -32,7 +36,7 @@ public class OrderResource {
     }
 
     /**
-     *  Implementazione di GET "/orders".
+     * Implementation of GET "/orders".
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -52,7 +56,7 @@ public class OrderResource {
             }
 
             if("".equals(response.trim())) {
-                return ResponseBuilderUtil.build(Response.Status.CONFLICT);
+                return ResponseBuilderUtil.build(Response.Status.NOT_FOUND); //TODO: add client this error handling (anche per ORDERS)
             } else {
                 return ResponseBuilderUtil.buildOkResponse(response, MediaType.APPLICATION_JSON);
             }
@@ -63,8 +67,8 @@ public class OrderResource {
     }
 
     /**
-    * Implementation of POST "/orders".
-    */
+     * Implementation of POST "/orders".
+     */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     public Response setOrder(String body) {
@@ -101,6 +105,7 @@ public class OrderResource {
             String orderCommand, orderResponse, domainCommand, domainResponse; 
 
             switch (operation) {
+                // Purchase a new domain
                 case "purchase":
                     // Add order
                     orderCommand = String.format("ORDER SET %s %s %s %s %s %s %s %s", domain, userId, price, operationDate, cvv, cardNumber, operation, accountHolder);
@@ -114,29 +119,32 @@ public class OrderResource {
 
                     if("OK".equals(orderResponse.trim()) && "OK".equals(domainResponse.trim())) {
                         return ResponseBuilderUtil.buildOkResponse();
-                    } else if (domainResponse.trim().startsWith("ERROR:")) { //TODO: guardare che è sta roba
+                    } else if (domainResponse.trim().startsWith("ERROR:")) {
                         return ResponseBuilderUtil.build(Response.Status.CONFLICT, domainResponse);
                     }
 
                     break;
+                // Renew an existing domain
                 case "renewal":
-                    //TODO: renewal (add max years logic)
 
-                    //TODO: if userId changed and domain is available I need to change it and reset the purchase date of the domain
-
-                    // Get current expiry date
+                    // Get domain expiration date
                     domainCommand = "DOMAIN GET " + domain;
                     domainResponse = client.sendCommand(domainCommand);
 
                     JsonNode jsonNodeDomain = mapper.readTree(domainResponse);
                     String userIdDomain = getFieldValue(jsonNodeDomain, "userId");
                     long exiprationDomain = jsonNodeDomain.get("expiryDate").asLong();
+                    long purchaseDate = jsonNodeDomain.get("purchaseDate").asLong();
 
-                    // Check if domain is actually a userId's domain
+                    // Max cumulative years renewal check (max 10 years)
+                    if(! isWithin10Years(purchaseDate, Long.parseLong(expirationDate))) {
+                        System.out.println("Renew invalido");
+                        return ResponseBuilderUtil.build(Response.Status.NOT_ACCEPTABLE, "ERROR: You can't renew for more than 10 comulative years.");
+                    }
+
+                    // Check if domain belongs to userId
                     if(! userId.trim().equals(userIdDomain.trim())) {
-                        // Terminate connection
                         client.close();
-
                         return ResponseBuilderUtil.build(Response.Status.FORBIDDEN, "You don't have access to this operation");
                     } else {
                         // New expiration date string
@@ -165,10 +173,11 @@ public class OrderResource {
             return null;
         } catch (IOException e) {
             e.printStackTrace();
-            return null;
+            return ResponseBuilderUtil.build(Response.Status.INTERNAL_SERVER_ERROR);
         }
     }
 
+    // Helper to get field value from JSON
     private String getFieldValue(JsonNode jsonNode, String fieldName) {
         JsonNode fieldNode = jsonNode.get(fieldName);
         if(fieldName == null) {
@@ -177,6 +186,7 @@ public class OrderResource {
         return fieldNode != null ? fieldNode.asText() : null;
     }
 
+    // Domain validation using regex
     private boolean domainValidator(String domain) {
         String DOMAIN_NAME_WITH_TLD_REGEX = "^((?!-)[A-Za-z0-9-]{1,63}(?<!-)\\.)+[A-Za-z]{2,6}$";
         Pattern DOMAIN_NAME_WITH_TLD_PATTERN = Pattern.compile(DOMAIN_NAME_WITH_TLD_REGEX);
@@ -187,6 +197,7 @@ public class OrderResource {
         return matcher.matches();
     }
 
+    // Card number validation
     private boolean cardNumberValidator(String card) {
         if(card == null || card.isEmpty()) return false;
 
@@ -207,5 +218,18 @@ public class OrderResource {
         }
         return (sum % 10 == 0);
     }
-    
+
+    // Check if date is no more than 10 years forward the purchase date
+    private boolean isWithin10Years (long millis1, long millis2) {
+        Date date1 = new Date(millis1);
+        Date date2 = new Date(millis2);
+        
+        // Calculate the difference in milliseconds
+        long diffInMillis = Math.abs(date1.getTime() - date2.getTime());
+
+        // Convert difference from milliseconds to years
+        long diffInYears = diffInMillis / (1000L * 60 * 60 * 24 * 365);
+        
+        return diffInYears <= 10;
+    }
 }

@@ -140,10 +140,8 @@
                         throw new Error(`Generic error. ${response.status} ${response.statusText}`);
                     }
                 } else {
-                    // If the response is OK, parse the response as JSON
-                    const data = await response.json();
                     // Redirect the user to the 'buy.html' page with the domain as a query parameter
-                    window.location.href = `buy.html?domain=${data.domain}`;
+                    window.location.href = `buy.html?domain=${domain}`;
                 }
             }
         </script>

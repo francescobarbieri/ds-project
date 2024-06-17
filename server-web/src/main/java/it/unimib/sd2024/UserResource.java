@@ -34,7 +34,7 @@ public class UserResource {
     }
 
     /**
-     * Implementation of GET "/user".
+     * Implementation of GET "/user/{userId}".
      */
     @Path("/{userId}")
     @GET
@@ -78,7 +78,7 @@ public class UserResource {
             String surname = getFieldValue(jsonNode, "surname");
             String email = getFieldValue(jsonNode, "email");
 
-            if(!emailValidator(email)) {
+            if(!emailValidator(email) || name.isEmpty() || surname.isEmpty() ) {
                 return ResponseBuilderUtil.build(Response.Status.BAD_REQUEST, "ERROR: Invalid email.");
             }
 
@@ -103,6 +103,7 @@ public class UserResource {
         }
     }
 
+    // Helper to get field value from JSON
     private String getFieldValue(JsonNode jsonNode, String fieldName) {
         JsonNode fieldNode = jsonNode.get(fieldName);
         if(fieldName == null) {
@@ -111,6 +112,7 @@ public class UserResource {
         return fieldNode != null ? fieldNode.asText() : null;
     }
 
+    // Email validation using regex
     private boolean emailValidator(String email) {
         String EMAIL_REGEX = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$";
         Pattern EMAIL_PATTERN = Pattern.compile(EMAIL_REGEX);

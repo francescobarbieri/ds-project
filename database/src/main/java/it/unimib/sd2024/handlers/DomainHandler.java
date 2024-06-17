@@ -75,10 +75,18 @@ public class DomainHandler {
         long now = Long.parseLong(parts[4]);
         long expiryDate = Long.parseLong(parts[5]);
 
+        Domain domain = domains.get(name);
+
         // Check if the domain already exists
-        if(domains.containsKey(name)) {
+        if(domain != null && ! domain.getAvailable()) {
             System.out.println("ERROR: Domain " + name + " already exists");
             return "ERROR: Domain " + name + " already exists\n";
+        // The domain can be repuchased since it has expired
+        } else if (domain != null && domain.getAvailable()) {            
+            // The domain can change owner since it's expired
+            domains.put(name, new Domain(name, userid, expiryDate, now, false));
+            saveDomains();
+            return "OK\n";
         }
 
         // Add the new domain to the domains map
@@ -107,10 +115,14 @@ public class DomainHandler {
         if(domain == null) {
             System.out.println("Domain " + name + " is available");
             return "OK\n";
-        //TODO: check expiration date
-        //} else if (System.currentTimeMillis() > domain.getExpiryDate()) {
-        //    System.out.println("Domain " + name + " is available 2");
-        //    return "OK\n";
+        // Domain has expired
+        } else if (System.currentTimeMillis() > domain.getExpiryDate()) {
+            // Set domain as available
+            domains.put(name, new Domain(name, domain.getUserId(), domain.getExpiryDate(), domain.getPurchaseDate(), true));
+            saveDomains();
+
+            System.out.println("Domain " + name + " is available (expired)");
+            return "OK\n";
         } else {
             System.out.println("ERROR: Domain " + name + " is not available");
             return "ERROR: Domain " + name + " is not available\n";

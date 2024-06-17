@@ -35,7 +35,7 @@ DOMAIN GETALL [&lt;userid&gt;]
 Retrieves all domains optionally filtered by userid.
 
 #### DOMAIN UPDATE
-DOMAIN UPDATE &lt;name&gt; &lt;userid&gt; &lt;expirationdate&gt;
+DOMAIN UPDATE &lt;name&gt; &lt;expirationdate&gt;
 
 Updates the expiration date of the domain with the specified name.
 
