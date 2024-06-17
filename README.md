@@ -21,3 +21,6 @@ Using Visual Studio Code:
 * Client Web: VS Code live server
 * Server Web: Open a new terminal and run `mvn jetty:run`
 * Database: Open a new terminal and run `mvn compile` first, then `mvn exeec:java`
+
+## Ports and addresses
+The web server listens to the `localhost` address on port `8080`. The database listens to the same address as the web server but on port `3030`.
