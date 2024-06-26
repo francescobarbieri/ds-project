@@ -3,10 +3,6 @@ package it.unimib.sd2024;
 import java.net.*;
 import java.util.Iterator;
 
-import it.unimib.sd2024.handlers.DomainHandler;
-import it.unimib.sd2024.handlers.OrderHandler;
-import it.unimib.sd2024.handlers.UserHandler;
-
 import java.io.*;
 import java.nio.*;
 import java.nio.channels.*;
@@ -20,10 +16,7 @@ public class Main {
     private InetSocketAddress listenAddress; // Address to listen on
     public static final int PORT = 3030; // Default port number
 
-    // Handlers for different types of requests
-    private final UserHandler userHandler = new UserHandler();
-    private final DomainHandler domainHandler = new DomainHandler();
-    private final OrderHandler orderHandler = new OrderHandler();
+    private static DBHandler dbHandler = new DBHandler();
 
     /**
      * Constructor to initialize the server with a specific address and port.
@@ -138,22 +131,23 @@ public class Main {
      * @return the response string
      */
     private String handleCommand(String command) {
-        String[] parts = command.split(" ");
-        if(parts.length < 2) return "ERROR: invalid command. \n"; // Check if the command is valid
-        String resource = parts[0].toUpperCase();
+        String[] parts = command.split(" ", 2);
+        //TODO: check commands number of parts if(parts.length < 2) return "ERROR: invalid command. \n"; // Check if the command is valid
+        String operation = parts[0].toUpperCase();
 
-        // Handle the command based on the resource type
-        switch (resource) {
-            case "USER":
-                return userHandler.handle(parts);
-            case "DOMAIN":
-                return domainHandler.handle(parts);
-            case "ORDER":
-                return orderHandler.handle(parts);
-            case "EXIT":
-                return("bye\n");
+        System.out.println(operation);
+
+        switch (operation) {
+            case "SET":
+                return dbHandler.setDoc(command);
+            case "GET":
+                return dbHandler.getDoc(command);
+            case "GETALL":
+                return dbHandler.getDocs(command);
+            case "UPDATE":
+                return dbHandler.update(command);
             default:
-                return("ERROR: unknown resoruce. \n");
+                return "-ERROR: Unknown command.\n";
         }
     }
 
@@ -179,6 +173,7 @@ public class Main {
     public static void main(String[] args) throws IOException {
         try {
             new Main("localhost", PORT).startServer(); // Create and start the server
+            dbHandler = new DBHandler();
         } catch (IOException e) {
             e.printStackTrace();
         }

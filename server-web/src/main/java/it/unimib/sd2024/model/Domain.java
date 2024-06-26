@@ -1,8 +1,5 @@
 package it.unimib.sd2024.model;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 public class Domain {
     private String domainName;
     private String userId;
@@ -74,15 +71,5 @@ public class Domain {
                 ", available='" + isAvailable + '\'' +
                 ", expiryDate=" + expiryDate +
                 '}';
-    }
-
-    public String toJSON() {
-        ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            return objectMapper.writeValueAsString(this);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-            return "{}";
-        }
     }
 }

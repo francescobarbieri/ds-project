@@ -1,15 +1,21 @@
 package it.unimib.sd2024;
 
 import java.io.IOException;
+import java.io.StringReader;
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import it.unimib.sd2024.model.User;
-import it.unimib.sd2024.utils.Client;
+import it.unimib.sd2024.utils.DBRequest;
+import it.unimib.sd2024.utils.DBResponse;
 import it.unimib.sd2024.utils.ResponseBuilderUtil;
+import jakarta.json.Json;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonObjectBuilder;
+import jakarta.json.JsonReader;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.OPTIONS;
@@ -25,7 +31,6 @@ import jakarta.ws.rs.core.Response;
  */
 @Path("user")
 public class UserResource {
-    private ObjectMapper objectMapper = new ObjectMapper();
 
     @OPTIONS
     @Produces(MediaType.APPLICATION_JSON)
@@ -46,17 +51,13 @@ public class UserResource {
         }
 
         try {
-            Client client = new Client("localhost", 3030);
-            String command = "USER GET " + userId;
-            String response = client.sendCommand(command);
-            client.close();
+            DBRequest userRequest = new DBRequest("users");
+            DBResponse response = userRequest.getDoc(userId);
 
-            if("NULL".equals(response.trim())) {
-                // User not found
-                return ResponseBuilderUtil.build(Response.Status.NOT_FOUND);
+            if(response.isOk()) {
+                return ResponseBuilderUtil.buildOkResponse(response.getResponse(), MediaType.APPLICATION_JSON);
             } else {
-                User user = objectMapper.readValue(response, User.class);
-                return ResponseBuilderUtil.buildOkResponse(user, MediaType.APPLICATION_JSON);
+                return response.returnErrors();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -72,24 +73,30 @@ public class UserResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response registerUser(String jsonString) {
         try {
-            JsonNode jsonNode = objectMapper.readTree(jsonString);
+            JsonReader jsonReader = Json.createReader(new StringReader(jsonString));
+            JsonObject jsonObject = jsonReader.readObject();
 
-            String name = getFieldValue(jsonNode, "name");
-            String surname = getFieldValue(jsonNode, "surname");
-            String email = getFieldValue(jsonNode, "email");
+            String name = jsonObject.getString("name");
+            String surname = jsonObject.getString("surname");
+            String email = jsonObject.getString("email");
 
             if(!emailValidator(email) || name.isEmpty() || surname.isEmpty() ) {
                 return ResponseBuilderUtil.build(Response.Status.BAD_REQUEST, "ERROR: Invalid email.");
             }
 
-            Client client = new Client("localhost", 3030);
-            String command = String.format("USER SET %s %s %s", email, name, surname);
-            String response = client.sendCommand(command);
-            client.close();
+            String userId = generateUniqueId(email);
 
-            if(response.startsWith("OK, user ID: ")) {
-                String userId = response.substring(13).trim();
+            // Add userId to json that get sent to the server
+            JsonObjectBuilder jsonObjectBuilder = Json.createObjectBuilder(jsonObject);
+            jsonObjectBuilder.add("userId", userId);
+            JsonObject jsonObjectWithUserId = jsonObjectBuilder.build();
 
+            DBRequest userRequest = new DBRequest("users");
+            DBResponse response = userRequest.setDoc(userId, jsonObjectWithUserId.toString());
+
+            System.out.println(response.getResponse());
+
+            if(response.isOk()) {
                 StringBuilder jsonResponse = new StringBuilder();
                 jsonResponse.append("{\"id\": \"" + userId + "\"}");
 
@@ -103,15 +110,6 @@ public class UserResource {
         }
     }
 
-    // Helper to get field value from JSON
-    private String getFieldValue(JsonNode jsonNode, String fieldName) {
-        JsonNode fieldNode = jsonNode.get(fieldName);
-        if(fieldName == null) {
-            System.out.println("Field " + fieldName + " is missing or null.");
-        }
-        return fieldNode != null ? fieldNode.asText() : null;
-    }
-
     // Email validation using regex
     private boolean emailValidator(String email) {
         String EMAIL_REGEX = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$";
@@ -122,5 +120,29 @@ public class UserResource {
         Matcher matcher = EMAIL_PATTERN.matcher(email);
         return matcher.matches();
     }
-    
+
+    /**
+     * Generate a unique ID for a user based on its email.
+     */
+    private String generateUniqueId(String input) {
+        try {
+            // Create a SHA-256 hash of the input string
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            byte[] hashBytes = md.digest(input.getBytes(StandardCharsets.UTF_8));
+
+            // Convert the hash bytes to a BigInteger
+            BigInteger hasInteger = new BigInteger(1, hashBytes);
+
+            // Get the absolute value to ensure no negative numbers
+            String haString = hasInteger.toString();
+
+            // Use modulo operation to get a 5-digit number
+            int uniqueId = Math.abs(haString.hashCode()) % 100000;
+
+            // Ensure the uniqueId is always 5 digits by adding leading zeros if necessary
+            return String.format("%05d", uniqueId);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Error generating a unique id, " + e);
+        }
+    }
 }

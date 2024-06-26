@@ -131,7 +131,7 @@
                         errorBox.querySelector(".name").innerHTML = data.name;
                         errorBox.querySelector(".surname").innerHTML = data.surname;
                         errorBox.querySelector(".email").innerHTML = data.email;
-                        errorBox.querySelector(".expiry").innerHTML = new Date(Number(data.expiryDate)).toLocaleDateString();
+                        errorBox.querySelector(".expiry").innerHTML = new Date(Number(data.expirationDate)).toLocaleDateString();
 
                         errorBox.style.display = "block";
                         return;

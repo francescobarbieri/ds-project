@@ -1,22 +1,22 @@
 package it.unimib.sd2024.model;
 
 public class User {
-    private String id;
+    private String userId;
     private String name;
     private String surname;
     private String email;
 
     public User() { }
 
-    public User(String id, String email, String name, String surname) {
-        this.id = id;
+    public User(String userId, String email, String name, String surname) {
+        this.userId = userId;
         this.name = name;
         this.surname = surname;
         this.email = email;
     }
 
-    public String getId() {
-        return this.id;
+    public String getuserId() {
+        return this.userId;
     }
 
     public String getEmail() {
@@ -35,8 +35,8 @@ public class User {
         this.email = email;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setuserId(String userId) {
+        this.userId = userId;
     }
 
     public void setName(String name) {

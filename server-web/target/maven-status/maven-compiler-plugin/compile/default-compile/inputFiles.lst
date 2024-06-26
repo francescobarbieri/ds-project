@@ -1,10 +1,11 @@
 /Users/francesco/Desktop/SistemiDistribuiti/ds-project/server-web/src/main/java/it/unimib/sd2024/DomainsResource.java
 /Users/francesco/Desktop/SistemiDistribuiti/ds-project/server-web/src/main/java/it/unimib/sd2024/JsonException.java
 /Users/francesco/Desktop/SistemiDistribuiti/ds-project/server-web/src/main/java/it/unimib/sd2024/JsonParsingException.java
-/Users/francesco/Desktop/SistemiDistribuiti/ds-project/server-web/src/main/java/it/unimib/sd2024/OrderResource.java
 /Users/francesco/Desktop/SistemiDistribuiti/ds-project/server-web/src/main/java/it/unimib/sd2024/UserResource.java
 /Users/francesco/Desktop/SistemiDistribuiti/ds-project/server-web/src/main/java/it/unimib/sd2024/model/Domain.java
 /Users/francesco/Desktop/SistemiDistribuiti/ds-project/server-web/src/main/java/it/unimib/sd2024/model/Order.java
 /Users/francesco/Desktop/SistemiDistribuiti/ds-project/server-web/src/main/java/it/unimib/sd2024/model/User.java
 /Users/francesco/Desktop/SistemiDistribuiti/ds-project/server-web/src/main/java/it/unimib/sd2024/utils/Client.java
+/Users/francesco/Desktop/SistemiDistribuiti/ds-project/server-web/src/main/java/it/unimib/sd2024/utils/DBRequest.java
+/Users/francesco/Desktop/SistemiDistribuiti/ds-project/server-web/src/main/java/it/unimib/sd2024/utils/DBResponse.java
 /Users/francesco/Desktop/SistemiDistribuiti/ds-project/server-web/src/main/java/it/unimib/sd2024/utils/ResponseBuilderUtil.java

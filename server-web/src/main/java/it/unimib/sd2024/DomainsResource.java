@@ -4,11 +4,15 @@ import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import it.unimib.sd2024.utils.Client;
+import it.unimib.sd2024.model.Domain;
+import it.unimib.sd2024.model.User;
+import it.unimib.sd2024.utils.DBRequest;
+import it.unimib.sd2024.utils.DBResponse;
 import it.unimib.sd2024.utils.ResponseBuilderUtil;
+import jakarta.json.Json;
+import jakarta.json.JsonObject;
+import jakarta.json.bind.Jsonb;
+import jakarta.json.bind.JsonbBuilder;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.OPTIONS;
 import jakarta.ws.rs.Path;
@@ -23,7 +27,6 @@ import jakarta.ws.rs.core.Response;
  */
 @Path("domains")
 public class DomainsResource {
-    ObjectMapper mapper = new ObjectMapper();
 
     @OPTIONS
     public Response avoidCORSBlocking2() {
@@ -37,23 +40,19 @@ public class DomainsResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getDomains(@QueryParam("userId") String userId) {
         try {
-            String response;
+            DBRequest domainRequest = new DBRequest("domains");
+            DBResponse response;
+
             if(userId == null || userId == "") {
-                Client client = new Client("localhost", 3030);
-                String command = "DOMAIN GETALL";
-                response = client.sendCommand(command);
-                client.close();
+                response = domainRequest.getDocs();
             } else {
-                Client client = new Client("localhost", 3030);
-                String command = "DOMAIN GETALL " + userId;
-                response = client.sendCommand(command);
-                client.close();
+                response = domainRequest.getFilteredDoc("userId", userId);
             }
 
-            if("".equals(response.trim())) { 
-                return ResponseBuilderUtil.build(Response.Status.NOT_FOUND);
+            if(response.isOk()) {
+                return ResponseBuilderUtil.buildOkResponse(response.getResponse(), MediaType.APPLICATION_JSON);
             } else {
-                return ResponseBuilderUtil.buildOkResponse(response,  MediaType.APPLICATION_JSON);
+                return response.returnErrors();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -69,66 +68,62 @@ public class DomainsResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response checkAvailabilityDomain(@PathParam("domain") String domain) {
 
-        if( ! domainValidator(domain)) {
+        if(!domainValidator(domain)) {
             return ResponseBuilderUtil.build(Response.Status.BAD_REQUEST, "ERROR: Invalid domain.");
         }
 
         try {
-            Client client = new Client("localhost", 3030);
-            String command = "DOMAIN CHECK " + domain;
-            String response = client.sendCommand(command);
+            DBRequest domainRequest = new DBRequest("domains");
+            DBResponse domainResponse = domainRequest.getDoc(domain);
 
-            if("OK".equals(response.trim())) {
-                client.close();
+            System.out.println("Error message: " + domainResponse.getErrorMessage());
+            System.out.println("Response: " + domainResponse.getResponse());
+
+            if(domainResponse.getErrorMessage().equals("NOTFOUND")) {
                 return ResponseBuilderUtil.buildOkResponse();
-            }
-            // If domain is not available
-            else {
-                // Get domain informations
-                command = "DOMAIN GET " + domain;
-                response = client.sendCommand(command);
+            } else if(domainResponse.isOk()) {
 
-                // Extract domain owner userId and expiration date from json
-                JsonNode jsonNodeDomain = mapper.readTree(response);
-                String userId = getFieldValue(jsonNodeDomain, "userId");
-                String expiryDate = getFieldValue(jsonNodeDomain, "expiryDate");
+                // Parse response domain object
+                Jsonb jsonb = JsonbBuilder.create();
+                Domain domainJson = jsonb.fromJson(domainResponse.getResponse(), Domain.class);
 
-                // Get userId informations
-                command = "USER GET " + userId;
-                response = client.sendCommand(command);
+                // Extrat domain infos
+                String userId = domainJson.getUserId();
+                Long expirationDate = domainJson.getExpiryDate();
 
-                // Extract user infos from json
-                JsonNode jsonNodeUser = mapper.readTree(response);
-                String name = getFieldValue(jsonNodeUser, "name");
-                String surname = getFieldValue(jsonNodeUser, "surname");
-                String email = getFieldValue(jsonNodeUser, "email");
+                // Check if domain has expired, if it has it is available
+                if(expirationDate < System.currentTimeMillis())
+                    return ResponseBuilderUtil.buildOkResponse();
 
-                client.close();
+                // Else, not available, get user data and return 409 error
+                DBRequest userRequest = new DBRequest("users");
+                DBResponse userResponse = userRequest.getDoc(userId);
 
-                // Build response JSON
-                StringBuilder jsonString = new StringBuilder();
-                jsonString.append("{\"name\": \"" + name + "\",");
-                jsonString.append("\"surname\": \"" + surname + "\",");
-                jsonString.append("\"email\": \"" + email + "\",");
-                jsonString.append("\"expiryDate\": \"" + expiryDate + "\" }");
-        
-                String jsonResponse = jsonString.toString(); 
+                if(!userResponse.isOk())
+                    return ResponseBuilderUtil.build(Response.Status.INTERNAL_SERVER_ERROR);
+
+                User userJson = jsonb.fromJson(userResponse.getResponse(), User.class);
+                String name = userJson.getName();
+                String email = userJson.getEmail();
+                String surname = userJson.getSurname();
+
+                // Build json response
+                JsonObject jsonObject = Json.createObjectBuilder()
+                    .add("name", name)
+                    .add("surname", surname)
+                    .add("email", email)
+                    .add("expirationDate", expirationDate)
+                    .build();
+                String jsonResponse = jsonb.toJson(jsonObject);
 
                 return ResponseBuilderUtil.build(Response.Status.CONFLICT, jsonResponse);
+            } else {
+                return domainResponse.returnErrors();
             }
         } catch (IOException e) {
             e.printStackTrace();
-            return ResponseBuilderUtil.build(Response.Status.INTERNAL_SERVER_ERROR, e.getMessage());
+            return ResponseBuilderUtil.build(Response.Status.INTERNAL_SERVER_ERROR);
         }
-    }
-
-    // Helper to get field value from JSON
-    private String getFieldValue(JsonNode jsonNode, String fieldName) {
-        JsonNode fieldNode = jsonNode.get(fieldName);
-        if(fieldName == null) {
-            System.out.println("Field " + fieldName + " is missing or null.");
-        }
-        return fieldNode != null ? fieldNode.asText() : null;
     }
 
     // Domain validation using regex
