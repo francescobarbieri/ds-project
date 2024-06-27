@@ -48,11 +48,11 @@
         "expirationDate": 1751019660478
     },
     "non.it": {
-        "purchaseDate": 31536000000,
+        "purchaseDate": 1719504235004,
         "domainName": "non.it",
         "available": false,
-        "lastRenewed": 0,
+        "lastRenewed": 1719504235004,
         "userId": "04216",
-        "expirationDate": 1751019660478
+        "expirationDate": 1751040235004
     }
 }

@@ -112,18 +112,31 @@ public class OrderResource {
             switch (operation) {
                 // Purchase a new domain
                 case "purchase":
+                    // Try to add domain
+                    Domain domainToUpload = new Domain(domain, userId, Long.parseLong(expirationDate), operationDate, operationDate);
+                    domainRequest = new DBRequest("domains");
+                    domainResponse = domainRequest.setDoc(domain, domainToUpload.toJson());
+
+                    // If domain exists but is expired I have to update it with the new data
+                    if(domainResponse.getErrorMessage().equals("ERROR: Key already exists.")) {
+
+                        // Get the current domain
+                        domainRequest = new DBRequest("domains");
+                        domainResponse = domainRequest.getDoc(domain);
+                        Domain existingDomain = jsonb.fromJson(domainResponse.getResponse(), Domain.class);
+                        
+                        // Domain has expired
+                        if(existingDomain.getExpirationDate() < operationDate) {
+                            domainRequest = new DBRequest("domains");
+                            domainResponse = domainRequest.update(domain, domainToUpload.toJson());
+                        }
+                    } else return ResponseBuilderUtil.build(Response.Status.CONFLICT, "ERROR: Domain already exists.");
+
                     // Add order
                     Order tempOrder = new Order(domain, userId, Integer.parseInt(price), operationDate, accountHolder, cvv, cardNumber, operation);
                     id = randomId();
                     orderRequest = new DBRequest("orders");
                     orderResponse = orderRequest.setDoc(id, tempOrder.toJson());
-
-                    // Add domain
-                    Domain tempDomain = new Domain(domain, userId, Long.parseLong(expirationDate), operationDate, operationDate);
-                    domainRequest = new DBRequest("domains");
-                    domainResponse = domainRequest.setDoc(domain, tempDomain.toJson());
-
-                    //TODO: if domain exists but is expired I have to update it with the new data
 
                     if(orderResponse.isOk() && domainResponse.isOk()) {
                         return ResponseBuilderUtil.buildOkResponse();
