@@ -1,51 +1,58 @@
 {
     "gagency.it": {
-        "expirationDate": 1750149111553,
         "purchaseDate": 1718613111553,
         "domainName": "gagency.it",
         "available": false,
-        "userId": "41169"
+        "lastRenewed": 0,
+        "userId": "41169",
+        "expirationDate": 1750149111553
     },
     "avvocati.it": {
-        "expirationDate": 2065450884769,
         "purchaseDate": 1718554799843,
         "domainName": "avvocati.it",
         "available": false,
-        "userId": "04216"
+        "lastRenewed": 0,
+        "userId": "04216",
+        "expirationDate": 2065450884769
     },
     "ciao.it": {
-        "expirationDate": 1718554799843,
         "purchaseDate": 1718554799843,
         "domainName": "ciao.it",
         "available": false,
-        "userId": "33197"
+        "lastRenewed": 0,
+        "userId": "33197",
+        "expirationDate": 1718554799843
     },
     "gagency.eu": {
-        "expirationDate": 1750090884769,
         "purchaseDate": 1718554884769,
         "domainName": "gagency.eu",
         "available": false,
-        "userId": "33197"
+        "lastRenewed": 0,
+        "userId": "33197",
+        "expirationDate": 1750090884769
     },
     "liuto.it": {
         "purchaseDate": 1719483660478,
         "domainName": "liuto.it",
+        "liuto.it": 1877163660478,
         "userId": "04216",
-        "lastRenewed": 0,
-        "expirationDate": 1751019660478
+        "lastRenewed": 1719503405654,
+        "expirationDate": 1877163660478
     },
     "pippo.it": {
-        "expiryDate": 1718553969280,
         "purchaseDate": 1718553969280,
         "domainName": "pippo.it",
         "available": false,
-        "userId": "29107"
+        "lastRenewed": 0,
+        "userId": "29107",
+        "expirationDate": 1751019660478
     },
     "non.it": {
         "purchaseDate": 31536000000,
         "domainName": "non.it",
         "available": false,
+        "lastRenewed": 0,
         "userId": "04216",
-        "expirationDate": 1
+        "expirationDate": 1751019660478
     }
 }

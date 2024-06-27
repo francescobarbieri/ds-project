@@ -1,9 +1,109 @@
 {
+    "on0llfn6": {
+        "date": 1719503015664,
+        "accountHolder": "Francesco Barbieri",
+        "cvv": "123",
+        "price": 40,
+        "domain": "liuto.it",
+        "operationType": "renewal",
+        "userId": "04216",
+        "cardNumber": "4532015112830366"
+    },
+    "t9qp9wzo": {
+        "date": 1719502675561,
+        "accountHolder": "Francesco Barbieri",
+        "cvv": "123",
+        "price": 40,
+        "domain": "liuto.it",
+        "operationType": "renewal",
+        "userId": "04216",
+        "cardNumber": "4532015112830366"
+    },
+    "3v7k3xch": {
+        "date": 1719498437498,
+        "accountHolder": "Francesco Barbieri",
+        "cvv": "123",
+        "price": 30,
+        "domain": "liuto.it",
+        "operationType": "renewal",
+        "userId": "04216",
+        "cardNumber": "4532015112830366"
+    },
+    "elf9677b": {
+        "date": 1719503405654,
+        "accountHolder": "Francesco Barbieri",
+        "cvv": "123",
+        "price": 40,
+        "domain": "liuto.it",
+        "operationType": "renewal",
+        "userId": "04216",
+        "cardNumber": "4532015112830366"
+    },
+    "tovkaytx": {
+        "date": 1719502807106,
+        "accountHolder": "Francesco Barbieri",
+        "cvv": "123",
+        "price": 30,
+        "domain": "liuto.it",
+        "operationType": "renewal",
+        "userId": "04216",
+        "cardNumber": "4532015112830366"
+    },
+    "03g1qfhm": {
+        "date": 1719503154217,
+        "accountHolder": "Francesco Barbieri",
+        "cvv": "123",
+        "price": 40,
+        "domain": "liuto.it",
+        "operationType": "renewal",
+        "userId": "04216",
+        "cardNumber": "4532015112830366"
+    },
+    "uojbyytf": {
+        "date": 1719503194303,
+        "accountHolder": "Francesco Barbieri",
+        "cvv": "123",
+        "price": 80,
+        "domain": "liuto.it",
+        "operationType": "renewal",
+        "userId": "04216",
+        "cardNumber": "4532015112830366"
+    },
     "hlr83t3s": {
         "date": 31536000000,
         "cvv": "123",
         "price": 1,
         "domain": "non.it",
+        "userId": "04216",
+        "cardNumber": "4532015112830366"
+    },
+    "h7aicopt": {
+        "date": 1719502427598,
+        "accountHolder": "Francesco Barbieri",
+        "cvv": "123",
+        "price": 30,
+        "domain": "liuto.it",
+        "operationType": "renewal",
+        "userId": "04216",
+        "cardNumber": "4532015112830366"
+    },
+    "u6zivwhj": {
+        "date": 1719502909740,
+        "accountHolder": "Francesco Barbieri",
+        "cvv": "123",
+        "price": 40,
+        "domain": "liuto.it",
+        "operationType": "renewal",
+        "userId": "04216",
+        "cardNumber": "4532015112830366"
+    },
+    "xhxsxan5": {
+        "date": 1719502960654,
+        "accountHolder": "Francesco Barbieri",
+        "cvv": "123",
+        "price": 10,
+        "domain": "liuto.it",
+        "operationType": "renewal",
         "userId": "04216",
         "cardNumber": "4532015112830366"
     },

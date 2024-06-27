@@ -8,6 +8,7 @@ public class Order {
     private int price;
     private long date;
     private String cvv;
+    private String accountHolder;
     private String cardNumber;
     private String operationType;
 
@@ -17,11 +18,12 @@ public class Order {
     
     public Order () { }
 
-    public Order(String domain, String userId, int price, long date, String cvv, String cardNumber, String operationType) {
+    public Order(String domain, String userId, int price, long date, String accountHolder, String cvv, String cardNumber, String operationType) {
         this.domain = domain;
         this.userId = userId;
         this.price = price; 
         this.date = date;
+        this.accountHolder = accountHolder;
         this.cvv = cvv;
         this.cardNumber = cardNumber;
         this.operationType = operationType;
@@ -59,6 +61,14 @@ public class Order {
         this.date = date;
     }
 
+    public String getAccountHolder() {
+        return accountHolder;
+    }
+
+    public void setAccountHolder(String accountHolder) {
+        this.accountHolder = accountHolder;
+    }
+
     public String getCvv() {
         return cvv;
     }
@@ -89,6 +99,7 @@ public class Order {
         jsonObject.put("userId", this.userId);
         jsonObject.put("price", this.price);
         jsonObject.put("date", this.date);
+        jsonObject.put("accountHolder", this.accountHolder);
         jsonObject.put("cvv", this.cvv);
         jsonObject.put("cardNumber", this.cardNumber);
         jsonObject.put("operationType", this.operationType);

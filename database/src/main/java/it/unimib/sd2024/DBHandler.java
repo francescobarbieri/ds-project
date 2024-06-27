@@ -154,9 +154,6 @@ public class DBHandler {
                         }
                     }
                 }
-
-                System.out.println(responseJson.toString());
-
                 return "+" + responseJson.toString() + "\n";
             } else {
                 String collectionName = command.trim().split(" ")[1];
@@ -184,7 +181,7 @@ public class DBHandler {
 
         String collectionName = parts[1].toLowerCase();
         String key = parts[2].toLowerCase();
-        String newJsonString = parts[3].toLowerCase();
+        String newJsonString = parts[3];
 
         JSONObject updateData = new JSONObject(newJsonString);
 
@@ -202,7 +199,7 @@ public class DBHandler {
             JSONObject innerObject = collection.getJSONObject(key);
     
             for(String innerKey : updateData.keySet()) {
-                innerObject.put(key, updateData.get(innerKey));
+                innerObject.put(innerKey, updateData.get(innerKey));
             }
 
             Files.write(path, collection.toString(4).getBytes());

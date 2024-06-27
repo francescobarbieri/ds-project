@@ -99,7 +99,7 @@ public class OrderResource {
                 return ResponseBuilderUtil.build(Response.Status.BAD_REQUEST, e.getMessage());
             }
             
-            String operationDate = Long.toString(System.currentTimeMillis());
+            Long operationDate = System.currentTimeMillis();
 
             long millsInAYear = TimeUnit.DAYS.toMillis(365);
             String expirationDate = Long.toString(System.currentTimeMillis() + (duration * millsInAYear));
@@ -113,15 +113,17 @@ public class OrderResource {
                 // Purchase a new domain
                 case "purchase":
                     // Add order
-                    Order tempOrder = new Order(domain, userId, Integer.parseInt(price), Long.parseLong(operationDate), cvv, cardNumber, operation);
+                    Order tempOrder = new Order(domain, userId, Integer.parseInt(price), operationDate, accountHolder, cvv, cardNumber, operation);
                     id = randomId();
                     orderRequest = new DBRequest("orders");
                     orderResponse = orderRequest.setDoc(id, tempOrder.toJson());
 
                     // Add domain
-                    Domain tempDomain = new Domain(domain, userId, Long.parseLong(expirationDate), Long.parseLong(operationDate), 0);
+                    Domain tempDomain = new Domain(domain, userId, Long.parseLong(expirationDate), operationDate, operationDate);
                     domainRequest = new DBRequest("domains");
                     domainResponse = domainRequest.setDoc(domain, tempDomain.toJson());
+
+                    //TODO: if domain exists but is expired I have to update it with the new data
 
                     if(orderResponse.isOk() && domainResponse.isOk()) {
                         return ResponseBuilderUtil.buildOkResponse();
@@ -130,8 +132,6 @@ public class OrderResource {
                     }
                 // Renew an existing domain
                 case "renewal":
-                    /*
-                    //TODO: Get domain last renewal date
                     domainRequest = new DBRequest("domains");
                     domainResponse = domainRequest.getDoc(domain);
 
@@ -141,38 +141,41 @@ public class OrderResource {
                     } else return ResponseBuilderUtil.build(Response.Status.NOT_FOUND);
 
                     String userIdDomain = domainObject.getUserId();
-                    long exiprationDomain = domainObject.getExpiryDate();
-                    //TODO: deve diventare last renewal
-                    long purchaseDate = domainObject.getPurchaseDate();
+                    long exiprationDate = domainObject.getExpirationDate();
+                    long lastRenewedDate = domainObject.getLastRenewed();
+
+                    // New expiration date string
+                    Long newExpiration = exiprationDate + (duration * millsInAYear);
 
                     // Max cumulative years renewal check (max 10 years)
-                    if(! isWithin10Years(purchaseDate, Long.parseLong(expirationDate))) {
+                    if(! isWithin10Years(lastRenewedDate, newExpiration) || duration > 10) {
                         System.out.println("Renew invalido");
-                        return ResponseBuilderUtil.build(Response.Status.NOT_ACCEPTABLE, "ERROR: You can't renew for more than 10 comulative years.");
+                        return ResponseBuilderUtil.build(Response.Status.NOT_ACCEPTABLE, "ERROR: You can't renew for more than 10 years.");
                     }
 
                     // Check if domain belongs to userId
                     if(! userId.trim().equals(userIdDomain.trim())) {
                         return ResponseBuilderUtil.build(Response.Status.FORBIDDEN, "You don't have access to this operation");
                     } else {
-                        // New expiration date string
-                        String newExpiration = Long.toString(exiprationDomain + (duration * millsInAYear));
-                        
                         // Update domain expiration date
+                        domainObject.setLastRenewed(operationDate);
+                        domainObject.setExpirationDate(newExpiration);
+
+                        // Update domain in database
                         domainRequest = new DBRequest("domains");
-                        domainResponse = domainRequest.update(domain, );
+                        domainResponse = domainRequest.update(domain, domainObject.toJson());
 
                         // Add order record
+                        Order orderObject = new Order(domain, userIdDomain, Integer.parseInt(price), operationDate, accountHolder, cvv, cardNumber, "renewal");
                         id = randomId();
                         orderRequest = new DBRequest("orders");        
-                        orderResponse = orderRequest.setDoc(id, );
+                        orderResponse = orderRequest.setDoc(id, orderObject.toJson());
 
                         // If both are okay returns okay response
                         if(orderResponse.isOk() && domainResponse.isOk()) {
                             return ResponseBuilderUtil.buildOkResponse();
                         }
                     }
-                    */
                 default:
                     // If operation different from purchase or renewal
                     return ResponseBuilderUtil.build(Response.Status.BAD_REQUEST, "ERROR: Unkwon operation type.");
