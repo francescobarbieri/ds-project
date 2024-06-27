@@ -125,5 +125,15 @@
         "operationType": "renewal",
         "userId": "04216",
         "cardNumber": "4532015112830366"
+    },
+    "z7xnkxg7": {
+        "date": 1719505977443,
+        "accountHolder": "Francesco Barbieri",
+        "cvv": "123",
+        "price": 10,
+        "domain": "ciaone.it",
+        "operationType": "purchase",
+        "userId": "04216",
+        "cardNumber": "4532015112830366"
     }
 }

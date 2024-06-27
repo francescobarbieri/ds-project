@@ -129,7 +129,7 @@ public class OrderResource {
                             domainRequest = new DBRequest("domains");
                             domainResponse = domainRequest.update(domain, domainToUpload.toJson());
                         }
-                    } else return ResponseBuilderUtil.build(Response.Status.CONFLICT, "ERROR: Domain already exists.");
+                    };
 
                     // Add order
                     Order tempOrder = new Order(domain, userId, Integer.parseInt(price), operationDate, accountHolder, cvv, cardNumber, operation);
