@@ -1,0 +1,19 @@
+{
+    "hlr83t3s": {
+        "date": 31536000000,
+        "cvv": "123",
+        "price": 1,
+        "domain": "non.it",
+        "userId": "04216",
+        "cardNumber": "4532015112830366"
+    },
+    "9mjpklmx": {
+        "date": 1719483660478,
+        "cvv": "123",
+        "price": 10,
+        "domain": "liuto.it",
+        "operationType": "purchase",
+        "userId": "04216",
+        "cardNumber": "4532015112830366"
+    }
+}

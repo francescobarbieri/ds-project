@@ -1,26 +1,22 @@
 package it.unimib.sd2024.model;
 
+import org.json.JSONObject;
+
 public class Domain {
     private String domainName;
     private String userId;
     private long purchaseDate;
-    private long expiryDate;
-    private boolean isAvailable;
+    private long lastRenewed;
+    private long expirationDate;
 
     public Domain() {}
 
-    public Domain(String domainName, String userId, boolean isAvailable) {
-        this.domainName = domainName;
-        this.userId = userId;
-        this.isAvailable = isAvailable;
-    }
-
-    public Domain(String domainName, String userId, long expiryDate, long purchaseDate, boolean isAvailable) {
+    public Domain(String domainName, String userId, long expirationDate, long purchaseDate, long lastRenewed) {
         this.domainName = domainName;
         this.purchaseDate = purchaseDate;
         this.userId = userId;
-        this.expiryDate = expiryDate;
-        this.isAvailable = isAvailable;
+        this.expirationDate = expirationDate;
+        this.lastRenewed = lastRenewed;
     }
 
     public String getDomainName() {
@@ -39,12 +35,12 @@ public class Domain {
         this.userId = userId;
     }
 
-    public long getExpiryDate() {
-        return expiryDate;
+    public long getExpirationDate() {
+        return expirationDate;
     }
 
-    public void setExpiryDate(long expiryDate) {
-        this.expiryDate = expiryDate;
+    public void setExpirationDate(long expirationDate) {
+        this.expirationDate = expirationDate;
     }
 
     public long getPurchaseDate() {
@@ -55,12 +51,12 @@ public class Domain {
         this.purchaseDate = purchaseDate;
     }
 
-    public boolean getAvailable() {
-        return isAvailable;
+    public long getLastRenewed() {
+        return lastRenewed;
     }
 
-    public void setAvailable(boolean isAvailable) {
-        this.isAvailable = isAvailable;
+    public void setLastRenewed(long lastRenewed) {
+        this.lastRenewed = lastRenewed;
     }
 
     @Override
@@ -68,8 +64,19 @@ public class Domain {
         return "Domain{" +
                 ", name='" + domainName + '\'' +
                 ", userId='" + userId + '\'' +
-                ", available='" + isAvailable + '\'' +
-                ", expiryDate=" + expiryDate +
+                ", lastRenewed='" + lastRenewed + '\'' +
+                ", expirationDate=" + expirationDate +
                 '}';
+    }
+
+    public String toJson() {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("domainName", this.domainName);
+        jsonObject.put("userId", this.userId);
+        jsonObject.put("purchaseDate", this.purchaseDate);
+        jsonObject.put("expirationDate", this.expirationDate);
+        jsonObject.put("lastRenewed", this.lastRenewed);
+
+        return jsonObject.toString();
     }
 }

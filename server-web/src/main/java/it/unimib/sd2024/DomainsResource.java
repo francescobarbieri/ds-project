@@ -1,8 +1,14 @@
 package it.unimib.sd2024;
 
 import java.io.IOException;
+import java.util.Date;
+import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.print.attribute.standard.Media;
+
+import org.json.JSONObject;
 
 import it.unimib.sd2024.model.Domain;
 import it.unimib.sd2024.model.User;
@@ -47,6 +53,34 @@ public class DomainsResource {
                 response = domainRequest.getDocs();
             } else {
                 response = domainRequest.getFilteredDoc("userId", userId);
+
+                if(response.isOk()) {
+                    JSONObject jsonResponse = new JSONObject(response.getResponse());
+                    long currentTimeMillis = System.currentTimeMillis();
+
+                    JSONObject filteredResponse = new JSONObject();
+
+                    Iterator<String> keys = jsonResponse.keys();
+                    while(keys.hasNext()) {
+                        String key = keys.next();
+                        JSONObject domain = jsonResponse.getJSONObject(key);
+
+                        long expirationDate;
+                        if(domain.has("expirationDate")) {
+                            expirationDate = domain.getLong("expirationDate");
+                        } else continue;
+
+                        System.out.println(new Date(expirationDate));
+
+                        if(expirationDate > currentTimeMillis) {
+                            filteredResponse.put(key, domain);
+                        }
+                    }
+
+                    return ResponseBuilderUtil.buildOkResponse(filteredResponse.toString(), MediaType.APPLICATION_JSON);
+                } else {
+                    response.returnErrors();
+                }
             }
 
             if(response.isOk()) {
@@ -89,7 +123,7 @@ public class DomainsResource {
 
                 // Extrat domain infos
                 String userId = domainJson.getUserId();
-                Long expirationDate = domainJson.getExpiryDate();
+                Long expirationDate = domainJson.getExpirationDate();
 
                 // Check if domain has expired, if it has it is available
                 if(expirationDate < System.currentTimeMillis())

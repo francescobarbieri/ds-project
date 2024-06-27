@@ -1,5 +1,7 @@
 package it.unimib.sd2024.model;
 
+import org.json.JSONObject;
+
 public class Order {
     private String domain;
     private String userId;
@@ -15,13 +17,14 @@ public class Order {
     
     public Order () { }
 
-    public Order(String domain, String userId, int price, long date, String cvv, String cardNumber) {
+    public Order(String domain, String userId, int price, long date, String cvv, String cardNumber, String operationType) {
         this.domain = domain;
         this.userId = userId;
         this.price = price; 
         this.date = date;
         this.cvv = cvv;
         this.cardNumber = cardNumber;
+        this.operationType = operationType;
     }
 
     public String getDomain() {
@@ -78,5 +81,18 @@ public class Order {
 
     public void setOperationType(String operationType) {
         this.operationType = operationType;
+    }
+
+    public String toJson() {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("domain", this.domain);
+        jsonObject.put("userId", this.userId);
+        jsonObject.put("price", this.price);
+        jsonObject.put("date", this.date);
+        jsonObject.put("cvv", this.cvv);
+        jsonObject.put("cardNumber", this.cardNumber);
+        jsonObject.put("operationType", this.operationType);
+
+        return jsonObject.toString();
     }
 }

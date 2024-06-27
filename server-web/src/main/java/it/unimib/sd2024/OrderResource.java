@@ -1,16 +1,23 @@
 package it.unimib.sd2024;
 
 import java.io.IOException;
+import java.io.StringReader;
+import java.security.SecureRandom;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import it.unimib.sd2024.utils.Client;
+import it.unimib.sd2024.model.Domain;
+import it.unimib.sd2024.model.Order;
+import it.unimib.sd2024.utils.DBRequest;
+import it.unimib.sd2024.utils.DBResponse;
 import it.unimib.sd2024.utils.ResponseBuilderUtil;
+import jakarta.json.Json;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonReader;
+import jakarta.json.bind.Jsonb;
+import jakarta.json.bind.JsonbBuilder;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.OPTIONS;
@@ -26,8 +33,6 @@ import jakarta.ws.rs.core.Response;
  */
 @Path("orders")
 public class OrderResource {
-    ObjectMapper mapper = new ObjectMapper();
-
     @OPTIONS
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -42,23 +47,19 @@ public class OrderResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getOrder(@QueryParam("userId") String userId) {
         try {
-            String response;
+            DBRequest domainRequest = new DBRequest("orders");
+            DBResponse response;
+
             if(userId == null || userId == "") {
-                Client client = new Client("localhost", 3030);
-                String command = "ORDER GETALL";
-                response = client.sendCommand(command);
-                client.close();
+                response = domainRequest.getDocs();
             } else {
-                Client client = new Client("localhost", 3030);
-                String command = "ORDER GETALL " + userId;
-                response = client.sendCommand(command);
-                client.close();
+                response = domainRequest.getFilteredDoc("userId", userId);
             }
 
-            if("".equals(response.trim())) {
-                return ResponseBuilderUtil.build(Response.Status.NOT_FOUND);
+            if(response.isOk()) {
+                return ResponseBuilderUtil.buildOkResponse(response.getResponse(), MediaType.APPLICATION_JSON);
             } else {
-                return ResponseBuilderUtil.buildOkResponse(response, MediaType.APPLICATION_JSON);
+                return response.returnErrors();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -71,20 +72,22 @@ public class OrderResource {
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response setOrder(String body) {
+    public Response setOrder(String jsonString) {
         try {
-            JsonNode jsonNode = mapper.readTree(body);
+            JsonReader jsonReader = Json.createReader(new StringReader(jsonString));
+            JsonObject jsonObject = jsonReader.readObject();
 
-            //TODO: gestire concorrenza se due utenti stanno facendo la stessa operazione insieme
+            String userId = jsonObject.getString("userId");
+            int duration = Integer.parseInt(jsonObject.getString("duration"));
+            //TODO add price to order class
+            String price = jsonObject.getString("price");
+            String domain = jsonObject.getString("domain");
+            String accountHolder = jsonObject.getString("accountHolder");
+            String cardNumber = jsonObject.getString("cardNumber");
+            String cvv = jsonObject.getString("cvv");
+            String operation = jsonObject.getString("operation");
 
-            String userId = getFieldValue(jsonNode, "userId");
-            int duration = jsonNode.get("duration").asInt();
-            String price = getFieldValue(jsonNode, "price");
-            String domain = getFieldValue(jsonNode, "domain");
-            String accountHolder = getFieldValue(jsonNode, "accountHolder");
-            String cardNumber = getFieldValue(jsonNode, "cardNumber");
-            String cvv = getFieldValue(jsonNode, "cvv");
-            String operation = getFieldValue(jsonNode, "operation");
+            //TODO: check duration both for purchase and for renewal
 
             try {
                 if (! domainValidator(domain)) throw new Exception("ERROR: Invalid domain.");
@@ -101,40 +104,46 @@ public class OrderResource {
             long millsInAYear = TimeUnit.DAYS.toMillis(365);
             String expirationDate = Long.toString(System.currentTimeMillis() + (duration * millsInAYear));
 
-            Client client = new Client("localhost", 3030);
-            String orderCommand, orderResponse, domainCommand, domainResponse; 
+            Jsonb jsonb = JsonbBuilder.create();
+            String id;
+            DBRequest orderRequest, domainRequest;
+            DBResponse orderResponse, domainResponse;
 
             switch (operation) {
                 // Purchase a new domain
                 case "purchase":
                     // Add order
-                    orderCommand = String.format("ORDER SET %s %s %s %s %s %s %s %s", domain, userId, price, operationDate, cvv, cardNumber, operation, accountHolder);
-                    orderResponse = client.sendCommand(orderCommand);            
+                    Order tempOrder = new Order(domain, userId, Integer.parseInt(price), Long.parseLong(operationDate), cvv, cardNumber, operation);
+                    id = randomId();
+                    orderRequest = new DBRequest("orders");
+                    orderResponse = orderRequest.setDoc(id, tempOrder.toJson());
 
                     // Add domain
-                    domainCommand = String.format("DOMAIN SET %s %s %s %s", domain, userId, operationDate, expirationDate);
-                    domainResponse = client.sendCommand(domainCommand);
+                    Domain tempDomain = new Domain(domain, userId, Long.parseLong(expirationDate), Long.parseLong(operationDate), 0);
+                    domainRequest = new DBRequest("domains");
+                    domainResponse = domainRequest.setDoc(domain, tempDomain.toJson());
 
-                    client.close();
-
-                    if("OK".equals(orderResponse.trim()) && "OK".equals(domainResponse.trim())) {
+                    if(orderResponse.isOk() && domainResponse.isOk()) {
                         return ResponseBuilderUtil.buildOkResponse();
-                    } else if (domainResponse.trim().startsWith("ERROR:")) {
+                    } else if (orderResponse.getErrorMessage().startsWith("ERROR")) {
                         return ResponseBuilderUtil.build(Response.Status.CONFLICT, domainResponse);
                     }
-
-                    break;
                 // Renew an existing domain
                 case "renewal":
+                    /*
+                    //TODO: Get domain last renewal date
+                    domainRequest = new DBRequest("domains");
+                    domainResponse = domainRequest.getDoc(domain);
 
-                    // Get domain expiration date
-                    domainCommand = "DOMAIN GET " + domain;
-                    domainResponse = client.sendCommand(domainCommand);
+                    Domain domainObject;
+                    if(domainResponse.isOk()) {
+                        domainObject = jsonb.fromJson(domainResponse.getResponse(), Domain.class);
+                    } else return ResponseBuilderUtil.build(Response.Status.NOT_FOUND);
 
-                    JsonNode jsonNodeDomain = mapper.readTree(domainResponse);
-                    String userIdDomain = getFieldValue(jsonNodeDomain, "userId");
-                    long exiprationDomain = jsonNodeDomain.get("expiryDate").asLong();
-                    long purchaseDate = jsonNodeDomain.get("purchaseDate").asLong();
+                    String userIdDomain = domainObject.getUserId();
+                    long exiprationDomain = domainObject.getExpiryDate();
+                    //TODO: deve diventare last renewal
+                    long purchaseDate = domainObject.getPurchaseDate();
 
                     // Max cumulative years renewal check (max 10 years)
                     if(! isWithin10Years(purchaseDate, Long.parseLong(expirationDate))) {
@@ -144,46 +153,34 @@ public class OrderResource {
 
                     // Check if domain belongs to userId
                     if(! userId.trim().equals(userIdDomain.trim())) {
-                        client.close();
                         return ResponseBuilderUtil.build(Response.Status.FORBIDDEN, "You don't have access to this operation");
                     } else {
                         // New expiration date string
                         String newExpiration = Long.toString(exiprationDomain + (duration * millsInAYear));
                         
                         // Update domain expiration date
-                        domainCommand = "DOMAIN UPDATE " + domain + " " + newExpiration;
-                        domainResponse = client.sendCommand(domainCommand);
+                        domainRequest = new DBRequest("domains");
+                        domainResponse = domainRequest.update(domain, );
 
                         // Add order record
-                        orderCommand = String.format("ORDER SET %s %s %s %s %s %s %s %s", domain, userId, price, operationDate, cvv, cardNumber, operation, accountHolder);
-                        orderResponse = client.sendCommand(orderCommand);
-
-                        client.close();
+                        id = randomId();
+                        orderRequest = new DBRequest("orders");        
+                        orderResponse = orderRequest.setDoc(id, );
 
                         // If both are okay returns okay response
-                        if("OK".equals(domainResponse.trim()) && "OK".equals(orderResponse.trim())) {
+                        if(orderResponse.isOk() && domainResponse.isOk()) {
                             return ResponseBuilderUtil.buildOkResponse();
                         }
                     }
+                    */
                 default:
                     // If operation different from purchase or renewal
                     return ResponseBuilderUtil.build(Response.Status.BAD_REQUEST, "ERROR: Unkwon operation type.");
             }
-
-            return null;
         } catch (IOException e) {
             e.printStackTrace();
             return ResponseBuilderUtil.build(Response.Status.INTERNAL_SERVER_ERROR);
         }
-    }
-
-    // Helper to get field value from JSON
-    private String getFieldValue(JsonNode jsonNode, String fieldName) {
-        JsonNode fieldNode = jsonNode.get(fieldName);
-        if(fieldName == null) {
-            System.out.println("Field " + fieldName + " is missing or null.");
-        }
-        return fieldNode != null ? fieldNode.asText() : null;
     }
 
     // Domain validation using regex
@@ -231,5 +228,21 @@ public class OrderResource {
         long diffInYears = diffInMillis / (1000L * 60 * 60 * 24 * 365);
         
         return diffInYears <= 10;
+    }
+
+    private String randomId() {
+        String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        int ID_LENGTH = 8;
+        // Secure random should have less collisions than basic random
+        SecureRandom RANDOM = new SecureRandom();
+
+        StringBuilder id = new StringBuilder(ID_LENGTH);
+
+        for(int i = 0; i < ID_LENGTH; i++){
+            int randomIndex = RANDOM.nextInt(CHARACTERS.length());
+            id.append(CHARACTERS.charAt(randomIndex));
+        }
+
+        return id.toString();
     }
 }

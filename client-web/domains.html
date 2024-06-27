@@ -94,7 +94,7 @@
 
                         // Create and append the expiration element
                         const expiration = document.createElement('div');
-                        const expirationDate = new Date(Number(item.expiryDate)).toLocaleDateString()
+                        const expirationDate = new Date(Number(item.expirationDate)).toLocaleDateString()
                         expiration.innerHTML = `<span style="font-weight: 500;">Expiration: </span><span class="expiration">${expirationDate}</span>`;
                         domainBox.appendChild(expiration);
 

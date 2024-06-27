@@ -14,6 +14,8 @@ import org.json.JSONTokener;
 
 public class DBHandler {
 
+    private final static boolean POPULATE = true;
+
     public DBHandler() {
         Path starterPath = Paths.get("starter/starter.json");
         Path collectionPath = Paths.get("collections");
@@ -21,7 +23,7 @@ public class DBHandler {
         try {
             DirectoryStream<Path> directoryStream = Files.newDirectoryStream(collectionPath);
             // If collections folder is empty and starter file is defined, populate the database accordingly
-            if(!directoryStream.iterator().hasNext() && Files.exists(starterPath)) {
+            if(!directoryStream.iterator().hasNext() && Files.exists(starterPath) && POPULATE) {
                 System.out.println("Populating the database ...");
 
                 // Read the starter JSON file
@@ -125,8 +127,8 @@ public class DBHandler {
         try {
             if(whereIndex != -1) {
                 String collectionName = command.substring(0, whereIndex).trim().split(" ")[1].toLowerCase();
-                String keyFilter = command.substring(whereIndex + 5).trim().split(" ")[0].toLowerCase();
-                String valueFilter = command.substring(whereIndex + 5).trim().split(" ")[1].toLowerCase();
+                String keyFilter = command.substring(whereIndex + 5).trim().split(" ")[0];
+                String valueFilter = command.substring(whereIndex + 5).trim().split(" ")[1];
     
                 Path path = Paths.get("collections/" + collectionName + ".json");
                 if(!Files.exists(path)) {
@@ -144,10 +146,10 @@ public class DBHandler {
                 while (keys.hasNext()) {
                     String key = keys.next();
                     JSONObject innerObject = collection.getJSONObject(key);
-                    
+
                     if(innerObject.has(keyFilter)) {
                         String value = innerObject.getString(keyFilter);
-                        if(value.equals(valueFilter)) {
+                        if(value.trim().equals(valueFilter.trim())) {
                             responseJson.put(key, innerObject);
                         }
                     }

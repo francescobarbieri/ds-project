@@ -1,31 +1,38 @@
 {
     "gagency.it": {
-        "expiryDate": 1750149111553,
+        "expirationDate": 1750149111553,
         "purchaseDate": 1718613111553,
         "domainName": "gagency.it",
         "available": false,
         "userId": "41169"
     },
     "avvocati.it": {
-        "expiryDate": 2065450884769,
+        "expirationDate": 2065450884769,
         "purchaseDate": 1718554799843,
         "domainName": "avvocati.it",
         "available": false,
         "userId": "04216"
     },
     "ciao.it": {
-        "expiryDate": 1718554799843,
+        "expirationDate": 1718554799843,
         "purchaseDate": 1718554799843,
         "domainName": "ciao.it",
         "available": false,
         "userId": "33197"
     },
     "gagency.eu": {
-        "expiryDate": 1750090884769,
+        "expirationDate": 1750090884769,
         "purchaseDate": 1718554884769,
         "domainName": "gagency.eu",
         "available": false,
         "userId": "33197"
+    },
+    "liuto.it": {
+        "purchaseDate": 1719483660478,
+        "domainName": "liuto.it",
+        "userId": "04216",
+        "lastRenewed": 0,
+        "expirationDate": 1751019660478
     },
     "pippo.it": {
         "expiryDate": 1718553969280,
@@ -33,5 +40,12 @@
         "domainName": "pippo.it",
         "available": false,
         "userId": "29107"
+    },
+    "non.it": {
+        "purchaseDate": 31536000000,
+        "domainName": "non.it",
+        "available": false,
+        "userId": "04216",
+        "expirationDate": 1
     }
 }

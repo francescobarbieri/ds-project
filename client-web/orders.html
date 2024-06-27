@@ -65,36 +65,39 @@
                 const orderContainer = document.getElementById("orders-container");
                 const data = await response.json();
 
-                data.forEach(item => {
-                    // Create a new order-box element for each item in the data
-                    const orderBox = document.createElement("div");
-                    orderBox.classList.add("domain-box");
+                for (const orderKey in data) {
+                    if(data.hasOwnProperty(orderKey)) {
+                        const item = data[orderKey];
+                        // Create a new order-box element for each item in the data
+                        const orderBox = document.createElement("div");
+                        orderBox.classList.add("domain-box");
 
-                    // Create and append the domain-name element
-                    const domainName = document.createElement('div');
-                    domainName.classList.add('domain-name');
-                    domainName.textContent = item.domain;
-                    orderBox.appendChild(domainName);
+                        // Create and append the domain-name element
+                        const domainName = document.createElement('div');
+                        domainName.classList.add('domain-name');
+                        domainName.textContent = item.domain;
+                        orderBox.appendChild(domainName);
 
-                    // Create and append the transaction date element
-                    const transationDate = document.createElement('div');
-                    const date = new Date(Number(item.date)).toLocaleDateString()
-                    transationDate.innerHTML = `<span style="font-weight: 500;">Transaction date: </span><span class="registered-at">${date}</span>`;
-                    orderBox.appendChild(transationDate);
+                        // Create and append the transaction date element
+                        const transationDate = document.createElement('div');
+                        const date = new Date(Number(item.date)).toLocaleDateString()
+                        transationDate.innerHTML = `<span style="font-weight: 500;">Transaction date: </span><span class="registered-at">${date}</span>`;
+                        orderBox.appendChild(transationDate);
 
-                    // Create and append the price element
-                    const priceElement = document.createElement('div');
-                    priceElement.innerHTML = `<span style="font-weight: 500;">Price: </span><span class="registered-at">${item.price}€</span>`;
-                    orderBox.appendChild(priceElement);
+                        // Create and append the price element
+                        const priceElement = document.createElement('div');
+                        priceElement.innerHTML = `<span style="font-weight: 500;">Price: </span><span class="registered-at">${item.price}€</span>`;
+                        orderBox.appendChild(priceElement);
 
-                    // Type of transaction
-                    const operationType = document.createElement('div');
-                    operationType.innerHTML = `<span style="font-weight: 500;">Operation type: </span><span class="expiration">${item.operationType}</span>`;
-                    orderBox.appendChild(operationType);
+                        // Type of transaction
+                        const operationType = document.createElement('div');
+                        operationType.innerHTML = `<span style="font-weight: 500;">Operation type: </span><span class="expiration">${item.operationType}</span>`;
+                        orderBox.appendChild(operationType);
 
-                    // Append the order-box element to the order-container
-                    orderContainer.appendChild(orderBox);
-                });
+                        // Append the order-box element to the order-container
+                        orderContainer.appendChild(orderBox);
+                    }
+                };
             } else if (response.status == 404) {
                 const errorBox = document.getElementById("error-box");
                 errorBox.innerText = "No order found";
