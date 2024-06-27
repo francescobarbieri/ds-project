@@ -87,12 +87,11 @@ public class OrderResource {
             String cvv = jsonObject.getString("cvv");
             String operation = jsonObject.getString("operation");
 
-            //TODO: check duration both for purchase and for renewal
-
             try {
                 if (! domainValidator(domain)) throw new Exception("ERROR: Invalid domain.");
                 else if (userId == "" || userId == null) throw new Exception("ERROR: Missing userId in request body.");
                 else if (cvv.length() != 3) throw new Exception("ERROR: Invalid cvv");
+                else if (duration > 10) throw new Exception("ERROR: You can't renew nor buy for more than 10 years.");
                 else if (! cardNumberValidator(cardNumber)) throw new Exception("ERROR: Invalid card number. Use this for testing: 4532015112830366");
             } catch (Exception e) {
                 e.printStackTrace();
