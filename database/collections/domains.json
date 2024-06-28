@@ -60,6 +60,13 @@
         "lastRenewed": 1719567179047,
         "expirationDate": 2066379660478
     },
+    "judo.it": {
+        "purchaseDate": 1719590402300,
+        "domainName": "judo.it",
+        "userId": "04216",
+        "lastRenewed": 1719590424470,
+        "expirationDate": 1877270402300
+    },
     "pippo.it": {
         "purchaseDate": 1718553969280,
         "domainName": "pippo.it",
@@ -67,6 +74,13 @@
         "lastRenewed": 0,
         "userId": "29107",
         "expirationDate": 1751019660478
+    },
+    "ciaoabc.it": {
+        "purchaseDate": 1719590525127,
+        "domainName": "ciaoabc.it",
+        "userId": "04216",
+        "lastRenewed": 1719590525127,
+        "expirationDate": 1751126525127
     },
     "non.it": {
         "purchaseDate": 1719504235004,

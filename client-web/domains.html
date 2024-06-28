@@ -71,15 +71,6 @@
                         const domainBox = document.createElement("div");
                         domainBox.classList.add("domain-box");
 
-                        // If user is logged see renew button
-                        if(localStorage.getItem("userId") != null) {
-                            const renewbutton = document.createElement('a');
-                            renewbutton.innerText = "Renew"
-                            renewbutton.classList.add('renew-button');
-                            renewbutton.setAttribute("href", `/buy.html?domain=${item.domainName}&operation=renewal`)
-                            domainBox.appendChild(renewbutton)
-                        }
-
                         // Create and append the domain-name element
                         const domainName = document.createElement('div');
                         domainName.classList.add('domain-name');
@@ -97,6 +88,34 @@
                         const expirationDate = new Date(Number(item.expirationDate)).toLocaleDateString()
                         expiration.innerHTML = `<span style="font-weight: 500;">Expiration: </span><span class="expiration">${expirationDate}</span>`;
                         domainBox.appendChild(expiration);
+
+                        // If user is logged see renew button
+                        if(localStorage.getItem("userId") != null) {
+                            const renewbuttonContainer = document.createElement('div');
+                            renewbuttonContainer.classList.add('renew-button-container');
+                            const renewbutton = document.createElement('a');
+                            renewbutton.innerText = "Renew"
+                            renewbutton.classList.add('renew-button');
+                            renewbutton.setAttribute("href", `/buy.html?domain=${item.domainName}&operation=renewal`)
+                            renewbuttonContainer.appendChild(renewbutton)
+                            domainBox.appendChild(renewbuttonContainer)
+                        } else {
+                            const statusContainer = document.createElement('div');
+                            statusContainer.classList.add('status-container');
+
+                            if(item.expirationDate < Date.now()) {
+                                statusContainer.innerText = "Expired";
+                                statusContainer.style.backgroundColor = "#e63c3c";
+                            } else if (item.purchaseDate == item.lastRenewed) {
+                                statusContainer.innerText = "Not renewed";
+                                statusContainer.style.backgroundColor = "#e6a902";
+                            }
+                            else {
+                                statusContainer.innerText = "Valid";
+                                statusContainer.style.backgroundColor = "#25c904";
+                            }
+                            domainBox.appendChild(statusContainer)
+                        }
 
                         // Append the domain-box element to the domain-container
                         domainContainer.appendChild(domainBox);

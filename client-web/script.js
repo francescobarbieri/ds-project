@@ -16,6 +16,7 @@ function setUserIdLS() {
     const userId = idElement.value;
     
     localStorage.setItem("userId", userId);
+    location.reload();
 }
 
 function unsetUserId() {
