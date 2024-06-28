@@ -1,22 +1,27 @@
 package it.unimib.sd2024;
 
 import java.net.*;
-import java.util.Iterator;
-
-import java.io.*;
-import java.nio.*;
 import java.nio.channels.*;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
+import java.io.*;
+import java.util.concurrent.*;
+
+import org.json.JSONObject;
+import org.json.JSONTokener;
 
 /**
  * Main class that starts the database server.
-*/
+ */
 public class Main {
-    private Selector selector; // Selector for managing multiple channels
-    
-    private InetSocketAddress listenAddress; // Address to listen on
+    private final static boolean POPULATE = true;
+    private final Selector selector; // Selector for managing multiple channels
+    private final InetSocketAddress listenAddress; // Address to listen on
     public static final int PORT = 3030; // Default port number
-
-    private static DBHandler dbHandler = new DBHandler();
+    private final ExecutorService threadPool = Executors.newFixedThreadPool(10); // Thread pool to handle concurrent connections
 
     /**
      * Constructor to initialize the server with a specific address and port.
@@ -27,6 +32,7 @@ public class Main {
      */
     public Main(String address, int port) throws IOException {
         listenAddress = new InetSocketAddress(address, port);
+        selector = Selector.open(); // Open a selector
     }
 
     /**
@@ -35,32 +41,28 @@ public class Main {
      * @throws IOException if an I/O error occurs
      */
     public void startServer() throws IOException {
-        this.selector = Selector.open(); // Open a selector
         ServerSocketChannel serverChannel = ServerSocketChannel.open(); // Open a server socket channel
         serverChannel.configureBlocking(false); // Configure it to be non-blocking
         serverChannel.socket().bind(listenAddress); // Bind the server socket to the specified address
-        serverChannel.register(this.selector, SelectionKey.OP_ACCEPT); // Register the server socket with the selector for accept operation
+        serverChannel.register(selector, SelectionKey.OP_ACCEPT); // Register the server socket with the selector for accept operation
+
+        populateDatabase();
 
         System.out.println("Database started on port: " + PORT);
 
         // Main loop to handle incoming connections and data
         while (true) {
-            // Wait for events
             selector.select();  
-            // Get the keys for which events occurred
             Iterator<SelectionKey> keys = selector.selectedKeys().iterator();
 
-            // Iterate over the keys
-            while(keys.hasNext()) {
+            while (keys.hasNext()) {
                 SelectionKey key = keys.next();
                 keys.remove();
 
-                if(!key.isValid()) continue;
+                if (!key.isValid()) continue;
 
-                if(key.isAcceptable()) {
+                if (key.isAcceptable()) {
                     accept(key); // Handle accept event
-                } else if (key.isReadable()) {
-                    read(key); // Handle read event
                 }
             }
         }
@@ -75,93 +77,49 @@ public class Main {
     private void accept(SelectionKey key) throws IOException {
         ServerSocketChannel serverChannel = (ServerSocketChannel) key.channel(); // Get the server channel
         SocketChannel socketChannel = serverChannel.accept(); // Accept the new connection
-        socketChannel.configureBlocking(false); // Configure it to be non-blocking
-        socketChannel.register(this.selector, SelectionKey.OP_READ);  // Register it with the selector for read operations
-        System.out.println("Connection accepted: " + socketChannel.getLocalAddress());
+        socketChannel.configureBlocking(true); // Configure it to be blocking for simplicity
+
+        // Submit a new client handler task to the thread pool
+        threadPool.submit(new ClientHandler(socketChannel));
+        System.out.println("Connection accepted: " + socketChannel.getRemoteAddress());
     }
 
-    /**
-     * Reads data from a connected client.
-     *
-     * @param key the selection key
-     * @throws IOException if an I/O error occurs
-     */
-    private void read(SelectionKey key) throws IOException {
-        SocketChannel socketChannel = (SocketChannel) key.channel(); // Get the socket channel
-        ByteBuffer buffer = ByteBuffer.allocate(256); // Allocate a buffer for reading data
-        int numRead = -1;
+    private void populateDatabase() {
+        Path starterPath = Paths.get("starter/starter.json");
+        Path collectionPath = Paths.get("collections");
 
         try {
-            numRead = socketChannel.read(buffer); // Read data into the buffer
-        } catch (IOException e) {
-            System.out.println("Error reading data: " + e);
-        }
+            DirectoryStream<Path> directoryStream = Files.newDirectoryStream(collectionPath);
+            // If collections folder is empty and starter file is defined, populate the database accordingly
+            if(!directoryStream.iterator().hasNext() && Files.exists(starterPath) && POPULATE) {
+                System.out.println("Populating the database ...");
 
-        if(numRead == -1) {
-            this.closeConnection(key); // Close the connection if no data was read (end of stream)
-            return; 
-        }
+                // Read the starter JSON file
+                FileInputStream fis = new FileInputStream(starterPath.toString());
+                JSONTokener tokener = new JSONTokener(fis);
+                JSONObject jsonObject = new JSONObject(tokener);
+                fis.close();
 
-        // Process the received data
-        String receivedString = new String(buffer.array()).trim();
-        System.out.println("Received: " + receivedString);
+                // Iterate over the keys in the JSON object
+                Iterator<String> keys = jsonObject.keys();
+                while(keys.hasNext()) {
+                    String fileName = keys.next();
+                    JSONObject fileData = jsonObject.getJSONObject(fileName);
 
-        String response = handleCommand(receivedString); // Handle the received command
-        byte[] responseBytes = response.getBytes();
-        int responseLength = responseBytes.length;
-        int offset = 0;
+                    // Write the data in the corrisponding collection file
+                    try (FileWriter file = new FileWriter("collections/" + fileName + ".json")) {
+                        file.write(fileData.toString(4));
+                    }
+                }
 
-        // Write the response in chunks
-        while (offset < responseLength) {
-            int bytesToWrite = Math.min(responseLength - offset, buffer.capacity());
-            buffer.clear();
-            buffer.put(responseBytes, offset, bytesToWrite);
-            buffer.flip();
-            while (buffer.hasRemaining()) {
-                socketChannel.write(buffer); // Write data to the client
+                System.out.println("Database populated!");
+            } else {
+                System.out.println("Database already populated.");
             }
-            offset += bytesToWrite;
+            directoryStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-    }
-
-    /**
-     * Handles a command received from a client.
-     *
-     * @param command the command string
-     * @return the response string
-     */
-    private String handleCommand(String command) {
-        String[] parts = command.split(" ", 2);
-        //TODO: check commands number of parts if(parts.length < 2) return "ERROR: invalid command. \n"; // Check if the command is valid
-        String operation = parts[0].toUpperCase();
-
-        System.out.println(operation);
-
-        switch (operation) {
-            case "SET":
-                return dbHandler.setDoc(command);
-            case "GET":
-                return dbHandler.getDoc(command);
-            case "GETALL":
-                return dbHandler.getDocs(command);
-            case "UPDATE":
-                return dbHandler.update(command);
-            default:
-                return "-ERROR: Unknown command.\n";
-        }
-    }
-
-    /**
-     * Closes the connection associated with the given key.
-     *
-     * @param key the selection key
-     * @throws IOException if an I/O error occurs
-     */
-    private void closeConnection(SelectionKey key) throws IOException {
-        SocketChannel socketChannel = (SocketChannel) key.channel(); // Get the socket channel
-        socketChannel.close();  // Close the channel
-        key.cancel(); // Cancel the key
-        System.out.println("Connection closed");
     }
 
     /**
@@ -173,10 +131,8 @@ public class Main {
     public static void main(String[] args) throws IOException {
         try {
             new Main("localhost", PORT).startServer(); // Create and start the server
-            dbHandler = new DBHandler();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 }
-

@@ -1,60 +1,18 @@
 package it.unimib.sd2024;
 
-import java.io.FileInputStream;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Iterator;
 
 import org.json.JSONObject;
-import org.json.JSONTokener;
 
 public class DBHandler {
 
-    private final static boolean POPULATE = true;
+    public DBHandler() { }
 
-    public DBHandler() {
-        Path starterPath = Paths.get("starter/starter.json");
-        Path collectionPath = Paths.get("collections");
-
-        try {
-            DirectoryStream<Path> directoryStream = Files.newDirectoryStream(collectionPath);
-            // If collections folder is empty and starter file is defined, populate the database accordingly
-            if(!directoryStream.iterator().hasNext() && Files.exists(starterPath) && POPULATE) {
-                System.out.println("Populating the database ...");
-
-                // Read the starter JSON file
-                FileInputStream fis = new FileInputStream(starterPath.toString());
-                JSONTokener tokener = new JSONTokener(fis);
-                JSONObject jsonObject = new JSONObject(tokener);
-                fis.close();
-
-                // Iterate over the keys in the JSON object
-                Iterator<String> keys = jsonObject.keys();
-                while(keys.hasNext()) {
-                    String fileName = keys.next();
-                    JSONObject fileData = jsonObject.getJSONObject(fileName);
-
-                    // Write the data in the corrisponding collection file
-                    try (FileWriter file = new FileWriter("collections/" + fileName + ".json")) {
-                        file.write(fileData.toString(4));
-                    }
-                }
-
-                System.out.println("Database populated!");
-            } else {
-                System.out.println("Database already populated.");
-            }
-            directoryStream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public String setDoc(String command) {
+    public synchronized String setDoc(String command) {
         String[] parts = command.split(" ", 4);
 
         String collectionName = parts[1].toLowerCase();
@@ -176,7 +134,7 @@ public class DBHandler {
         }
     }
 
-    public String update(String command) {
+    public synchronized String update(String command) {
         String[] parts = command.split(" ");
 
         String collectionName = parts[1].toLowerCase();
