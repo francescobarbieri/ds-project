@@ -9,6 +9,16 @@
         "userId": "04216",
         "cardNumber": "4532015112830366"
     },
+    "c86m3dwf": {
+        "date": 1719567443799,
+        "accountHolder": "Francesco Barbieri",
+        "cvv": "123",
+        "price": 10,
+        "domain": "corsair.it",
+        "operationType": "purchase",
+        "userId": "04216",
+        "cardNumber": "4532015112830366"
+    },
     "elf9677b": {
         "date": 1719503405654,
         "accountHolder": "Francesco Barbieri",
@@ -39,6 +49,16 @@
         "userId": "04216",
         "cardNumber": "4532015112830366"
     },
+    "t1l2uxft": {
+        "date": 1719567024542,
+        "accountHolder": "Francesco Barbieri",
+        "cvv": "123",
+        "price": 50,
+        "domain": "corsair.it",
+        "operationType": "renewal",
+        "userId": "04216",
+        "cardNumber": "4532015112830366"
+    },
     "h7aicopt": {
         "date": 1719502427598,
         "accountHolder": "Francesco Barbieri",
@@ -54,6 +74,16 @@
         "cvv": "123",
         "price": 10,
         "domain": "liuto.it",
+        "operationType": "purchase",
+        "userId": "04216",
+        "cardNumber": "4532015112830366"
+    },
+    "dluv8e47": {
+        "date": 1719567384616,
+        "accountHolder": "Francesco Barbieri",
+        "cvv": "123",
+        "price": 30,
+        "domain": "corsair.it",
         "operationType": "purchase",
         "userId": "04216",
         "cardNumber": "4532015112830366"
@@ -85,6 +115,26 @@
         "price": 10,
         "domain": "non.it",
         "operationType": "purchase",
+        "userId": "04216",
+        "cardNumber": "4532015112830366"
+    },
+    "tcv0guff": {
+        "date": 1719567007814,
+        "accountHolder": "Francesco Barbieri",
+        "cvv": "123",
+        "price": 30,
+        "domain": "corsair.it",
+        "operationType": "purchase",
+        "userId": "04216",
+        "cardNumber": "4532015112830366"
+    },
+    "3j6grgt8": {
+        "date": 1719567037713,
+        "accountHolder": "Francesco Barbieri",
+        "cvv": "123",
+        "price": 30,
+        "domain": "corsair.it",
+        "operationType": "renewal",
         "userId": "04216",
         "cardNumber": "4532015112830366"
     },
@@ -134,6 +184,26 @@
         "domain": "ciaone.it",
         "operationType": "purchase",
         "userId": "04216",
+        "cardNumber": "4532015112830366"
+    },
+    "aq3pxdgs": {
+        "date": 1719567179047,
+        "accountHolder": "Francesco Barbieri",
+        "cvv": "123",
+        "price": 60,
+        "domain": "liuto.it",
+        "operationType": "renewal",
+        "userId": "04216",
+        "cardNumber": "4532015112830366"
+    },
+    "aq3pxdgb": {
+        "date": 1719567179047,
+        "accountHolder": "Francesco Barbieri",
+        "cvv": "123",
+        "price": 60,
+        "domain": "testingdomain.it",
+        "operationType": "renewal",
+        "userId": "08956",
         "cardNumber": "4532015112830366"
     }
 }

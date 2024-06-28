@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.security.SecureRandom;
 import java.util.Date;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -33,6 +34,16 @@ import jakarta.ws.rs.core.Response;
  */
 @Path("orders")
 public class OrderResource {
+
+    private static final String DOMAIN_NAME_WITH_TLD_REGEX = "^((?!-)[A-Za-z0-9-]{1,63}(?<!-)\\.)+[A-Za-z]{2,6}$";
+    private static final Pattern DOMAIN_NAME_WITH_TLD_PATTERN = Pattern.compile(DOMAIN_NAME_WITH_TLD_REGEX);
+    private static final int CVV_LENGTH = 3;
+    private static final int MAX_YEARS = 10;
+    private static final long MILLS_IN_A_YEAR = TimeUnit.DAYS.toMillis(365);
+    private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    private static final int ID_LENGTH = 8;
+    private static final SecureRandom RANDOM = new SecureRandom();
+    
     @OPTIONS
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -77,117 +88,20 @@ public class OrderResource {
             JsonReader jsonReader = Json.createReader(new StringReader(jsonString));
             JsonObject jsonObject = jsonReader.readObject();
 
-            String userId = jsonObject.getString("userId");
-            int duration = Integer.parseInt(jsonObject.getString("duration"));
-            //TODO add price to order class
-            String price = jsonObject.getString("price");
-            String domain = jsonObject.getString("domain");
-            String accountHolder = jsonObject.getString("accountHolder");
-            String cardNumber = jsonObject.getString("cardNumber");
-            String cvv = jsonObject.getString("cvv");
-            String operation = jsonObject.getString("operation");
-
-            try {
-                if (! domainValidator(domain)) throw new Exception("ERROR: Invalid domain.");
-                else if (userId == "" || userId == null) throw new Exception("ERROR: Missing userId in request body.");
-                else if (cvv.length() != 3) throw new Exception("ERROR: Invalid cvv");
-                else if (duration > 10) throw new Exception("ERROR: You can't renew nor buy for more than 10 years.");
-                else if (! cardNumberValidator(cardNumber)) throw new Exception("ERROR: Invalid card number. Use this for testing: 4532015112830366");
-            } catch (Exception e) {
-                e.printStackTrace();
-                return ResponseBuilderUtil.build(Response.Status.BAD_REQUEST, e.getMessage());
+            Optional<String> validationError = validateOrderRequest(jsonObject);
+            if (validationError.isPresent()) {
+                return ResponseBuilderUtil.build(Response.Status.BAD_REQUEST, validationError.get());
             }
-            
-            Long operationDate = System.currentTimeMillis();
 
-            long millsInAYear = TimeUnit.DAYS.toMillis(365);
-            String expirationDate = Long.toString(System.currentTimeMillis() + (duration * millsInAYear));
-
-            Jsonb jsonb = JsonbBuilder.create();
-            String id;
-            DBRequest orderRequest, domainRequest;
-            DBResponse orderResponse, domainResponse;
+            String operation = jsonObject.getString("operation");
 
             switch (operation) {
                 // Purchase a new domain
                 case "purchase":
-                    // Try to add domain
-                    Domain domainToUpload = new Domain(domain, userId, Long.parseLong(expirationDate), operationDate, operationDate);
-                    domainRequest = new DBRequest("domains");
-                    domainResponse = domainRequest.setDoc(domain, domainToUpload.toJson());
-
-                    // If domain exists but is expired I have to update it with the new data
-                    if(domainResponse.getErrorMessage().equals("ERROR: Key already exists.")) {
-
-                        // Get the current domain
-                        domainRequest = new DBRequest("domains");
-                        domainResponse = domainRequest.getDoc(domain);
-                        Domain existingDomain = jsonb.fromJson(domainResponse.getResponse(), Domain.class);
-                        
-                        // Domain has expired
-                        if(existingDomain.getExpirationDate() < operationDate) {
-                            domainRequest = new DBRequest("domains");
-                            domainResponse = domainRequest.update(domain, domainToUpload.toJson());
-                        }
-                    };
-
-                    // Add order
-                    Order tempOrder = new Order(domain, userId, Integer.parseInt(price), operationDate, accountHolder, cvv, cardNumber, operation);
-                    id = randomId();
-                    orderRequest = new DBRequest("orders");
-                    orderResponse = orderRequest.setDoc(id, tempOrder.toJson());
-
-                    if(orderResponse.isOk() && domainResponse.isOk()) {
-                        return ResponseBuilderUtil.buildOkResponse();
-                    } else if (orderResponse.getErrorMessage().startsWith("ERROR")) {
-                        return ResponseBuilderUtil.build(Response.Status.CONFLICT, domainResponse);
-                    }
+                    return handlePurchase(jsonObject);
                 // Renew an existing domain
                 case "renewal":
-                    domainRequest = new DBRequest("domains");
-                    domainResponse = domainRequest.getDoc(domain);
-
-                    Domain domainObject;
-                    if(domainResponse.isOk()) {
-                        domainObject = jsonb.fromJson(domainResponse.getResponse(), Domain.class);
-                    } else return ResponseBuilderUtil.build(Response.Status.NOT_FOUND);
-
-                    String userIdDomain = domainObject.getUserId();
-                    long exiprationDate = domainObject.getExpirationDate();
-                    long lastRenewedDate = domainObject.getLastRenewed();
-
-                    // New expiration date string
-                    Long newExpiration = exiprationDate + (duration * millsInAYear);
-
-                    // Max cumulative years renewal check (max 10 years)
-                    if(! isWithin10Years(lastRenewedDate, newExpiration) || duration > 10) {
-                        System.out.println("Renew invalido");
-                        return ResponseBuilderUtil.build(Response.Status.NOT_ACCEPTABLE, "ERROR: You can't renew for more than 10 years.");
-                    }
-
-                    // Check if domain belongs to userId
-                    if(! userId.trim().equals(userIdDomain.trim())) {
-                        return ResponseBuilderUtil.build(Response.Status.FORBIDDEN, "You don't have access to this operation");
-                    } else {
-                        // Update domain expiration date
-                        domainObject.setLastRenewed(operationDate);
-                        domainObject.setExpirationDate(newExpiration);
-
-                        // Update domain in database
-                        domainRequest = new DBRequest("domains");
-                        domainResponse = domainRequest.update(domain, domainObject.toJson());
-
-                        // Add order record
-                        Order orderObject = new Order(domain, userIdDomain, Integer.parseInt(price), operationDate, accountHolder, cvv, cardNumber, "renewal");
-                        id = randomId();
-                        orderRequest = new DBRequest("orders");        
-                        orderResponse = orderRequest.setDoc(id, orderObject.toJson());
-
-                        // If both are okay returns okay response
-                        if(orderResponse.isOk() && domainResponse.isOk()) {
-                            return ResponseBuilderUtil.buildOkResponse();
-                        }
-                    }
+                   return handleRenewal(jsonObject);
                 default:
                     // If operation different from purchase or renewal
                     return ResponseBuilderUtil.build(Response.Status.BAD_REQUEST, "ERROR: Unkwon operation type.");
@@ -197,12 +111,120 @@ public class OrderResource {
             return ResponseBuilderUtil.build(Response.Status.INTERNAL_SERVER_ERROR);
         }
     }
+    
+    private Response handlePurchase(JsonObject jsonObject) throws IOException {
+        String domain = jsonObject.getString("domain");
+        String userId = jsonObject.getString("userId");
+        long operationDate = System.currentTimeMillis();
+        int duration = Integer.parseInt(jsonObject.getString("duration"));
+        String expirationDate = Long.toString(operationDate + (duration * MILLS_IN_A_YEAR));
+
+        Domain domainToUpload = new Domain(domain, userId, Long.parseLong(expirationDate), operationDate, operationDate);
+        DBRequest domainRequest = new DBRequest("domains");
+        DBResponse domainResponse = domainRequest.setDoc(domain, domainToUpload.toJson());
+
+        if (domainResponse.getErrorMessage().equals("ERROR: Key already exists.")) {
+            domainResponse = handleExistingDomain(domain, domainToUpload, operationDate);
+        }
+
+        return createOrderRecord(jsonObject, domain, userId, operationDate, "purchase", domainResponse);
+    }
+
+    private DBResponse handleExistingDomain(String domain, Domain domainToUpload, long operationDate) throws IOException {
+        DBRequest domainRequest = new DBRequest("domains");
+        DBResponse domainResponse = domainRequest.getDoc(domain);
+
+        if (domainResponse.isOk()) {
+            Jsonb jsonb = JsonbBuilder.create();
+            Domain existingDomain = jsonb.fromJson(domainResponse.getResponse(), Domain.class);
+
+            if (existingDomain.getExpirationDate() < operationDate) {
+                domainRequest = new DBRequest("domains");
+                domainResponse = domainRequest.update(domain, domainToUpload.toJson());
+            }
+        }
+
+        return domainResponse;
+    }
+
+    private Response handleRenewal(JsonObject jsonObject) throws IOException {
+        String domain = jsonObject.getString("domain");
+        String userId = jsonObject.getString("userId");
+        long operationDate = System.currentTimeMillis();
+        int duration = Integer.parseInt(jsonObject.getString("duration"));
+
+        DBRequest domainRequest = new DBRequest("domains");
+        DBResponse domainResponse = domainRequest.getDoc(domain);
+
+        if (!domainResponse.isOk()) {
+            return ResponseBuilderUtil.build(Response.Status.NOT_FOUND);
+        }
+
+        Jsonb jsonb = JsonbBuilder.create();
+        Domain domainObject = jsonb.fromJson(domainResponse.getResponse(), Domain.class);
+
+        if (!userId.equals(domainObject.getUserId())) {
+            return ResponseBuilderUtil.build(Response.Status.FORBIDDEN, "You don't have access to this operation");
+        }
+
+        long newExpiration = domainObject.getExpirationDate() + (duration * MILLS_IN_A_YEAR);
+
+        if (!isWithin10Years(domainObject.getLastRenewed(), newExpiration) || duration > MAX_YEARS) {
+            return ResponseBuilderUtil.build(Response.Status.NOT_ACCEPTABLE, "ERROR: You can't renew for more than 10 years.");
+        }
+
+        domainObject.setLastRenewed(operationDate);
+        domainObject.setExpirationDate(newExpiration);
+
+        domainRequest = new DBRequest("domains");
+        domainResponse = domainRequest.update(domain, domainObject.toJson());
+
+        return createOrderRecord(jsonObject, domain, userId, operationDate, "renewal", domainResponse);
+    }
+
+    private Response createOrderRecord(JsonObject jsonObject, String domain, String userId, long operationDate, String operation, DBResponse domainResponse) throws IOException {
+        Order tempOrder = new Order(
+            domain, 
+            userId, 
+            Integer.parseInt(jsonObject.getString("price")), 
+            operationDate, 
+            jsonObject.getString("accountHolder"), 
+            jsonObject.getString("cvv"), 
+            jsonObject.getString("cardNumber"), 
+            operation
+        );
+        
+        String id = randomId();
+        DBRequest orderRequest = new DBRequest("orders");
+        DBResponse orderResponse = orderRequest.setDoc(id, tempOrder.toJson());
+
+        if (orderResponse.isOk() && domainResponse.isOk()) {
+            return ResponseBuilderUtil.buildOkResponse();
+        } else if (orderResponse.getErrorMessage().startsWith("ERROR")) {
+            return ResponseBuilderUtil.build(Response.Status.CONFLICT, domainResponse);
+        }
+
+        return ResponseBuilderUtil.build(Response.Status.INTERNAL_SERVER_ERROR);
+    }
+
+
+    // Validate all order data coming from client
+    private Optional<String> validateOrderRequest(JsonObject jsonObject) {
+        String domain = jsonObject.getString("domain");
+        String userId = jsonObject.getString("userId");
+        String cardNumber = jsonObject.getString("cardNumber");
+        String cvv = jsonObject.getString("cvv");
+
+        if (!domainValidator(domain)) return Optional.of("ERROR: Invalid domain.");
+        if (userId == null || userId.isEmpty()) return Optional.of("ERROR: Missing userId in request body.");
+        if (cvv.length() != CVV_LENGTH) return Optional.of("ERROR: Invalid cvv");
+        if (!cardNumberValidator(cardNumber)) return Optional.of("ERROR: Invalid card number. Use this for testing: 4532015112830366");
+
+        return Optional.empty();
+    }
 
     // Domain validation using regex
     private boolean domainValidator(String domain) {
-        String DOMAIN_NAME_WITH_TLD_REGEX = "^((?!-)[A-Za-z0-9-]{1,63}(?<!-)\\.)+[A-Za-z]{2,6}$";
-        Pattern DOMAIN_NAME_WITH_TLD_PATTERN = Pattern.compile(DOMAIN_NAME_WITH_TLD_REGEX);
-
         if(domain == null) return false;
 
         Matcher matcher = DOMAIN_NAME_WITH_TLD_PATTERN.matcher(domain);
@@ -246,11 +268,7 @@ public class OrderResource {
     }
 
     private String randomId() {
-        String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        int ID_LENGTH = 8;
         // Secure random should have less collisions than basic random
-        SecureRandom RANDOM = new SecureRandom();
-
         StringBuilder id = new StringBuilder(ID_LENGTH);
 
         for(int i = 0; i < ID_LENGTH; i++){
