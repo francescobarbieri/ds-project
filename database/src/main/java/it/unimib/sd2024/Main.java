@@ -84,6 +84,8 @@ public class Main {
         System.out.println("Connection accepted: " + socketChannel.getRemoteAddress());
     }
 
+    // Invoked at database startup, it populate the database with the information in a starter.json file
+    // if present and if database is empty. 
     private void populateDatabase() {
         Path starterPath = Paths.get("starter/starter.json");
         Path collectionPath = Paths.get("collections");

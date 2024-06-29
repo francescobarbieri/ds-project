@@ -11,7 +11,13 @@ import org.json.JSONObject;
 public class DBHandler {
 
     public DBHandler() { }
-
+    
+    /**
+     * Sets a new document in the specified collection or updates an existing one.
+     *
+     * @param command the command string containing collection name, key, and JSON data
+     * @return "+\n" if successful, or "-ERROR: ..." on failure
+     */
     public synchronized String setDoc(String command) {
         String[] parts = command.split(" ", 4);
 
@@ -49,6 +55,13 @@ public class DBHandler {
         }
     }
 
+    /**
+     * Retrieves a document from the specified collection based on the key.
+     *
+     * @param command the command string containing collection name and key
+     * @return JSON representation of the document if found, or "-NOTFOUND\n" if not found
+     *         "-ERROR: ..." on failure
+     */
     public String getDoc(String command) {
         String[] parts = command.split(" ");
 
@@ -79,6 +92,12 @@ public class DBHandler {
         }
     }
 
+    /**
+     * Retrieves documents from the specified collection based on a optional WHERE clause.
+     *
+     * @param command the command string containing collection name and WHERE clause
+     * @return JSON representation of matched documents, or "-ERROR: ..." on failure
+     */
     public String getDocs(String command) {
         int whereIndex = command.indexOf("WHERE");
 
@@ -134,6 +153,12 @@ public class DBHandler {
         }
     }
 
+    /**
+     * Updates a document in the specified collection with new JSON data.
+     *
+     * @param command the command string containing collection name, key, and new JSON data
+     * @return "+\n" if successful, or "-ERROR: ..." on failure
+     */
     public synchronized String update(String command) {
         String[] parts = command.split(" ");
 
