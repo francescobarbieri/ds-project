@@ -41,7 +41,7 @@ All server responses begin with a prefix indicating the result of the operation:
 
 ### Available Operations
 
-* `SET`: Creates a new document in the specified collection. This operation adds a new document based on the provided JSON string.
+* `SET`: Creates a new document in the specified collection with the given `DocumentKey`. This operation adds a new document based on the provided JSON string. If the collection doesn't exists, it creates a new one.
 * `GET`: Retrieves a document using its `DocumentKey`.
 * `GETALL`: Retrieves all documents in a collection. Supports the WHERE filter to apply conditions.
 * `UPDATE`: Updates an existing document identified by its `DocumentKey`. This operation adds new fields and updates existing ones based on the provided JSON string, but it does not delete any fields that are not included in the JSON string.

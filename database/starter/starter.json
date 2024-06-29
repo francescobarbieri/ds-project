@@ -1,65 +1,87 @@
 {
     "domains": {
-        "gagency.it":{
-            "domainName":"gagency.it",
-            "userId":"41169",
-            "purchaseDate":1718613111553,
-            "expiryDate":971913600000,
-            "available":false
+        "dominioscaduto.com": {
+            "purchaseDate": 1719665484585,
+            "domainName": "dominioScaduto.com",
+            "userId": "32022",
+            "lastRenewed": 1719665484585,
+            "expirationDate": 971128800000
         },
-        "avvocati.it":{
-            "domainName":"avvocati.it",
-            "userId":"04216",
-            "purchaseDate":1718554799843,
-            "expiryDate":2065450884769,
-            "available":false
+        "avvocati.it": {
+            "purchaseDate": 1719665361197,
+            "domainName": "avvocati.it",
+            "userId": "71086",
+            "lastRenewed": 1719665377584,
+            "expirationDate": 1908881361197
         },
-        "ciao.it":{
-            "domainName":"ciao.it",
-            "userId":"33197",
-            "purchaseDate":1718554799843,
-            "expiryDate":1718554799843,
-            "available":false
-        },
-        "gagency.eu":{
-            "domainName":"gagency.eu",
-            "userId":"33197",
-            "purchaseDate":1718554884769,
-            "expiryDate":1750090884769,
-            "available":false
-        },
-        "pippo.it":{
-            "domainName":"pippo.it",
-            "userId":"29107",
-            "purchaseDate":1718553969280,
-            "expiryDate":1718553969280,
-            "available":false
+        "costruzioni.it": {
+            "purchaseDate": 1719665418277,
+            "domainName": "costruzioni.it",
+            "userId": "42843",
+            "lastRenewed": 1719665418277,
+            "expirationDate": 1908881418277
         }
     },
     "users": {
-        "41169":{
-            "id":"41169",
-            "email":"frankie3314@gmail.com",
-            "name":"Francesco",
-            "surname":"Barbieri"
+        "32022": {
+            "surname": "Cesana",
+            "name": "Mario",
+            "userId": "32022",
+            "email": "mario.cesana@gmail.com"
         },
-        "33197":{
-            "id":"33197",
-            "email":"email@gmail.com",
-            "name":"Francesco",
-            "surname":"Barbieri"
+        "71086": {
+            "surname": "Barbieri",
+            "name": "Francesco",
+            "userId": "71086",
+            "email": "test@test.com"
         },
-        "71086":{
-            "id":"71086",
-            "email":"fbarbieri.business@gmail.com",
-            "name":"Francesco",
-            "surname":"Barbieri"
+        "42843": {
+            "surname": "Barbuto",
+            "name": "Francesco",
+            "userId": "42843",
+            "email": "test2@gmail.com"
+        }
+    },
+    "orders": {
+        "nnoxinqh": {
+            "date": 1719665484585,
+            "accountHolder": "Mario Cesana",
+            "cvv": "123",
+            "price": 10,
+            "domain": "dominioScaduto.com",
+            "operationType": "purchase",
+            "userId": "32022",
+            "cardNumber": "4532015112830366"
         },
-        "29107":{
-            "id":"29107",
-            "email":"cazzello@gmail.com",
-            "name":"Francesco",
-            "surname":"Barbieri"
+        "ylrxugeg": {
+            "date": 1719665377584,
+            "accountHolder": "Francesco Barbieri",
+            "cvv": "123",
+            "price": 30,
+            "domain": "avvocati.it",
+            "operationType": "renewal",
+            "userId": "71086",
+            "cardNumber": "4532015112830366"
+        },
+        "mvq0cdnx": {
+            "date": 1719665418277,
+            "accountHolder": "Francesco Barbieri",
+            "cvv": "123",
+            "price": 60,
+            "domain": "costruzioni.it",
+            "operationType": "purchase",
+            "userId": "42843",
+            "cardNumber": "4532015112830366"
+        },
+        "fqxno07y": {
+            "date": 1719665361197,
+            "accountHolder": "Francesco Barbieri",
+            "cvv": "123",
+            "price": 30,
+            "domain": "avvocati.it",
+            "operationType": "purchase",
+            "userId": "71086",
+            "cardNumber": "4532015112830366"
         }
     }
 }

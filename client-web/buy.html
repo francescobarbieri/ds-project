@@ -39,7 +39,7 @@
                     <h1 id="domain-name">Budjetdomains</h1>
                     <p id="infobox">Complete the purchase</p>
                 </div>
-                <div id="main-content">
+                <div id="main-content" style="margin-bottom: 2rem;">
                     <div class="success-box" id="welcome-success-box">This domain is available!</div>
                     <div class="buy-box">
                         <h3>You can proceed</h3>
@@ -100,7 +100,7 @@
                 <div class="success-box" id="success-box" hidden>
                     You successfully bought the domain!
                 </div>
-                <div class="error-box" id="error-box" hidden>
+                <div class="error-box" id="error-box">
                 </div>
             </div>
         </div>
@@ -166,8 +166,8 @@
                     // Check if userId is stored in localStorage, show error message if not
                     if(!localStorage.getItem("userId")) {
                         const errorBox = document.getElementById("error-box");
-                        errorBox.innerText = "You need to insert a valid user ID in the navbar to proceed.";
-                        errorBox.removeAttribute("hidden");
+                        errorBox.innerText = "You need to insert a valid user ID in the navbar to proceed or Register a new account.";
+                        errorBox.style.display = "block";
                         return;
                     }
 
