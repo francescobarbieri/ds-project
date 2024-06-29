@@ -1,7 +1,6 @@
 package it.unimib.sd2024.utils;
 
 import java.io.IOException;
-import java.util.concurrent.Future;
 
 public class DBRequest {
 
