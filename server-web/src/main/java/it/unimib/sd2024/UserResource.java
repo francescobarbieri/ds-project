@@ -126,20 +126,13 @@ public class UserResource {
      */
     private String generateUniqueId(String input) {
         try {
-            // Create a SHA-256 hash of the input string
             MessageDigest md = MessageDigest.getInstance("SHA-256");
             byte[] hashBytes = md.digest(input.getBytes(StandardCharsets.UTF_8));
 
-            // Convert the hash bytes to a BigInteger
             BigInteger hasInteger = new BigInteger(1, hashBytes);
-
-            // Get the absolute value to ensure no negative numbers
             String haString = hasInteger.toString();
-
-            // Use modulo operation to get a 5-digit number
             int uniqueId = Math.abs(haString.hashCode()) % 100000;
 
-            // Ensure the uniqueId is always 5 digits by adding leading zeros if necessary
             return String.format("%05d", uniqueId);
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException("Error generating a unique id, " + e);

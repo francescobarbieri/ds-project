@@ -9,7 +9,6 @@ public class DBResponse {
     private String errorMessage;
 
     public DBResponse (String fullResponse) {
-        // System.out.println(fullResponse);
         this.fullResponse = fullResponse;
         if(!isOk()) {
             this.errorMessage = fullResponse.substring(1);
