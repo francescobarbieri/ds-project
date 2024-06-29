@@ -65,7 +65,7 @@ To retrieve all documents from the "Orders" collection where userId is equal to 
 GETALL orders WHERE userId 15483\n
 ```
 
-#### SET a mew document
+#### SET a new document
 
 To add a new document with DocumentKey "15483" to the "Users" collection, registering a new user:
 
