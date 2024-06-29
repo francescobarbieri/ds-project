@@ -1,4 +1,4 @@
-## `/domains  
+## /domains  
   
 ### GET  
   
@@ -21,7 +21,7 @@
 * `500 Internal Server Error`: An error occurred on the server.
 
 
-## `/domains/{domain}/availability 
+## /domains/{domain}/availability 
   
 ### GET  
   
@@ -45,7 +45,7 @@
 * `500 Internal Server Error`: An error occurred on the server.
 
   
-## `/orders 
+## /orders 
   
 ### GET
   
@@ -72,7 +72,7 @@
 * `500 Internal Server Error`: An error occurred on the server.
 
 
-## `/orders 
+## /orders 
   
 ### POST
   
@@ -100,7 +100,7 @@
 * `409 Conflict`: If the domain that you are trying to buy is already registered.
 * `500 Internal Server Error`: An error occurred on the server.
 
-## `/user/{userId}
+## /user/{userId}
   
 ### GET
   
@@ -122,7 +122,7 @@
 * `404 Not Found`: User not found for the given `userId`.
 * `500 Internal Server Error`: An error occurred on the server.
 
-## `/user
+## /user
 
 ### POST
   
