@@ -13,6 +13,16 @@ Here you can find the full [specification pdf](/_utils/specifications.pdf).
 ![homepage](/_utils/1.png)
 ![buy domain page](/_utils/2.png)
 ![domains list page](/_utils/3.png)
+![order list page](/_utils/4.png)
+![register page](/_utils/5.png)
+
+## System Components
+
+- **Web Client**: Provides a user-friendly web interface for domain registration and management. It communicates with the Web Server via REST APIs.
+
+- **Web Server**: Handles domain management logic and serves as an intermediary between the Web Client and the database. It exposes REST APIs to the Web Client and utilizes a custom TCP socket-based protocol to communicate with the database.
+
+- **Database**: A minimal, document-oriented, agnostic database that stores data as unprocessed strings. It communicates with the Web Server via TCP sockets.
 
 ## Compilation and Execution
 
